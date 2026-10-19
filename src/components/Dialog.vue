@@ -16,12 +16,21 @@ const props = withDefaults(defineProps<{
   contentMaxHeight?: string | number
   showFooter?: boolean
   centerFooter?: boolean
+  /** 右上角的关闭按钮。纯确认类对话框可以关掉——它和「取消」完全同义，同时出现是重复的 */
+  showCloseButton?: boolean
+  /** 遮罩是否把背景压暗。关掉后遮罩还在（点击空白处仍然关闭），只是不变暗 */
+  dimBackground?: boolean
+  /** 面板毛玻璃强度，`strong` 用更厚的一档 */
+  glassStrength?: 'default' | 'strong'
   loading?: boolean
   preventCloseWhenLoading?: boolean
 }>(), {
   preventCloseWhenLoading: true,
   frostedGlass: true,
   showFooter: true,
+  showCloseButton: true,
+  dimBackground: true,
+  glassStrength: 'default',
 })
 
 const emit = defineEmits(['close', 'confirm'])
@@ -46,13 +55,22 @@ const dialogWidth = computed(() => {
   return typeof props.width === 'number' ? `${props.width}px` : props.width || '400px'
 })
 const dialogMaxWidth = computed(() => {
-  return typeof props.maxWidth === 'number' ? `${props.maxWidth}px` : props.maxWidth || 'unset'
+  return typeof props.maxWidth === 'number' ? `${props.maxWidth}px` : props.maxWidth || 'calc(100vw - 32px)'
 })
 const dialogContentHeight = computed(() => {
   return typeof props.contentHeight === 'number' ? `${props.contentHeight}px` : props.contentHeight || 'auto'
 })
 const dialogContentMaxHeight = computed(() => {
   return typeof props.contentMaxHeight === 'number' ? `${props.contentMaxHeight}px` : props.contentMaxHeight || 'auto'
+})
+
+/** 走变量而不是写死数值，设置里的毛玻璃模糊强度（--bew-glass-blur-scale）和 `disable-frosted-glass` 才管得住 */
+const backdropFilter = computed(() => {
+  if (!props.frostedGlass)
+    return 'none'
+  return props.glassStrength === 'strong'
+    ? 'var(--bew-filter-glass-2-strong)'
+    : 'var(--bew-filter-glass-2)'
 })
 
 onKeyStroke('Alt', (e: KeyboardEvent) => {
@@ -99,10 +117,12 @@ function handleConfirm() {
         v-if="showDialog"
         class="dialog"
         pos="fixed top-0 left-0" w-full h-full z-10002
-        transform-gpu pointer-events-auto
+        pointer-events-auto
       >
         <div
+          class="dialog-mask"
           bg="black opacity-40 dark:opacity-40"
+          :class="{ '!bg-transparent': !dimBackground }"
           pos="absolute top-0 left-0" w-full h-full z-0
           @click="handleClose"
         />
@@ -113,7 +133,7 @@ function handleConfirm() {
           :style="{
             width: dialogWidth,
             maxWidth: dialogMaxWidth,
-            backdropFilter: frostedGlass ? 'var(--bew-filter-glass-2)' : 'none',
+            backdropFilter,
             backgroundColor: frostedGlass ? 'var(--bew-elevated)' : 'var(--bew-elevated-solid)',
           }"
           pos="absolute top-1/2 left-1/2" rounded="$bew-radius" border="1 $bew-border-color"
@@ -156,6 +176,7 @@ function handleConfirm() {
             </div>
 
             <div
+              v-if="showCloseButton"
               style="
                 backdrop-filter: var(--bew-filter-glass-1);
                 box-shadow: var(--bew-shadow-edge-glow-1), var(--bew-shadow-1);
@@ -222,4 +243,22 @@ function handleConfirm() {
 </template>
 
 <style lang="scss" scoped>
+/**
+ * 遮罩自己淡入。
+ *
+ * 打开时的渐显原来挂在根节点上（`.modal-enter-from` 的 opacity-0 scale-105），但根节点带上
+ * opacity/transform 就成了 backdrop root，面板的 backdrop-filter 在动画期间只能采样根节点内部，
+ * 采不到后面的页面——表现就是毛玻璃先被临时关掉、等动画结束才「啪」一下出现（`disable-frosted-glass`
+ * 开着时本来就没有毛玻璃，看不出这个变化）。所以改成：根节点不做动画，渐显由遮罩负责，
+ * 面板连同毛玻璃从第一帧就是最终样子。
+ */
+.dialog-mask {
+  animation: dialog-mask-in 500ms ease;
+}
+
+@keyframes dialog-mask-in {
+  from {
+    opacity: 0;
+  }
+}
 </style>

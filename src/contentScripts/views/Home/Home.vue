@@ -142,7 +142,9 @@ function toggleTabContentLoading(loading: boolean) {
           pos="absolute left-0 top-0" w-full h-inherit bg="cover center" z-1
           pointer-events-none
           :style="{
-            backgroundImage: `url('${settings.searchPageWallpaper}')`,
+            // Only emit a url() when a wallpaper is actually set — an unset one would interpolate
+            // into `url('undefined')` and be requested as a relative URL (a /undefined 404).
+            backgroundImage: settings.searchPageWallpaper ? `url('${settings.searchPageWallpaper}')` : undefined,
             backgroundAttachment: settings.searchPageModeWallpaperFixed ? 'fixed' : 'unset',
           }"
         />

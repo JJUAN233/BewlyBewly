@@ -1,18 +1,17 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue'
-import type { CSSProperties } from 'vue'
 import { useToast } from 'vue-toastification'
 
 import Button from '~/components/Button.vue'
 import { useBewlyApp } from '~/composables/useAppProvider'
 import { accessKey, settings } from '~/logic'
-import type { VideoInfo } from '~/models/video/videoInfo'
 import type { VideoPreviewResult } from '~/models/video/videoPreview'
 import { useMainStore } from '~/stores/mainStore'
 import api from '~/utils/api'
 import { getTvSign, TVAppKey } from '~/utils/authProvider'
 import { calcCurrentTime, calcTimeSince, numFormatter } from '~/utils/dataFormatter'
 import { getCSRF, removeHttpFromUrl } from '~/utils/main'
+import { ensureCid } from '~/utils/videoDownload'
 
 import Tooltip from '../Tooltip.vue'
 import type { Video } from './types'
@@ -44,7 +43,8 @@ const { mainAppRef, openIframeDrawer } = useBewlyApp()
 const { setActivatedCover } = useMainStore()
 
 const showVideoOptions = ref<boolean>(false)
-const videoOptionsFloatingStyles = ref<CSSProperties>({})
+/** 更多菜单的锚点：鼠标点在哪（菜单右对齐到它）、更多按钮的上/下边在哪（菜单贴在它下面或翻到它上面） */
+const contextMenuAnchor = ref<{ x: number, top: number, bottom: number }>({ x: 0, top: 0, bottom: 0 })
 // Whether the user has marked it as disliked
 const removed = ref<boolean>(false)
 
@@ -85,19 +85,8 @@ watch(() => isHover.value, async (newValue) => {
 
   if (props.showPreview && settings.value.enableVideoPreview
     && !previewVideoUrl.value && (props.video.aid || props.video.bvid)) {
-    let cid = props.video.cid
-    if (!cid) {
-      try {
-        const res: VideoInfo = await api.video.getVideoInfo({
-          bvid: props.video.bvid,
-        })
-        if (res.code === 0)
-          cid = res.data.cid
-      }
-      catch {
-
-      }
-    }
+    // cid 缺失时补取，逻辑与下载功能共用
+    const cid = await ensureCid(props.video)
     api.video.getVideoPreview({
       bvid: props.video.bvid,
       cid,
@@ -174,24 +163,14 @@ function handleClick(event: MouseEvent) {
 }
 
 function handleMoreBtnClick(event: MouseEvent) {
-  // the distance between the bottom and the height of the more button
   if (!moreBtnRef.value)
     return
-  const { bottom, height } = moreBtnRef.value.getBoundingClientRect()
+  const { top, bottom } = moreBtnRef.value.getBoundingClientRect()
 
-  /**
-   * if (screen height - bottom > 406px) then context-menu offset upwards
-   * Why 406? Because the current context-menu is not a responsive layout, it can be temporarily referred to as 406
-   */
-  const offsetTop = window.innerHeight - bottom > 406 ? 0 : -406 - height
-
+  // 只把「点在哪儿、按钮的上下边在哪儿」交给菜单，具体摆哪儿由菜单自己量完尺寸再算
+  // （原来这里按「菜单高 406px」的假设直接往上推，菜单一改版就推飞了，见 VideoCardContextMenu 的 placeMenu）
   showVideoOptions.value = false
-  videoOptionsFloatingStyles.value = {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    transform: `translate(${event.x}px, ${event.y + offsetTop}px)`,
-  }
+  contextMenuAnchor.value = { x: event.x, top, bottom }
   showVideoOptions.value = true
 }
 
@@ -532,7 +511,7 @@ provide('getVideoType', () => props.type!)
           ...video,
           url: videoUrl,
         }"
-        :context-menu-styles="videoOptionsFloatingStyles"
+        :anchor="contextMenuAnchor"
         @close="showVideoOptions = false"
         @removed="handleRemoved"
       />

@@ -41,6 +41,13 @@ const handleMessage = apiListenerFactory(FullAPI)
 export function setupApiMsgLstnrs() {
   browser.runtime.onConnect.removeListener(handleConnect)
   browser.runtime.onConnect.addListener(handleConnect)
+
+  // `handleMessage` used to be registered from `handleConnect`, i.e. only after some page had
+  // opened a port — which `webext-bridge` did as a side effect of being imported, and nothing
+  // else does. So the whole API was only reachable because of that port. Register the listener
+  // here directly, so requests are served whether or not anything connects.
+  browser.runtime.onMessage.removeListener(handleMessage)
+  browser.runtime.onMessage.addListener(handleMessage)
 }
 
 function handleConnect() {

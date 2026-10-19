@@ -18,6 +18,11 @@ function handleMessage(message: Message) {
 export function setupTabMsgLstnrs() {
   browser.runtime.onMessage.removeListener(handleConnect)
   browser.runtime.onMessage.addListener(handleConnect)
+
+  // `handleMessage` used to be registered only once some other message had already arrived, so
+  // the first one was never answered. Register it at setup instead.
+  browser.runtime.onMessage.removeListener(handleMessage)
+  browser.runtime.onMessage.addListener(handleMessage)
 }
 
 function handleConnect() {

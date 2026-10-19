@@ -43,6 +43,13 @@ const { isDark } = useDark()
 const mid = getUserID() || ''
 const userInfo = reactive<UserInfo | NonNullable<unknown>>({}) as UnwrapNestedRefs<UserInfo>
 
+// `userInfo` starts as an empty object, so `${userInfo.face}` stringifies to "undefined" before
+// the nav request comes back. That turned the avatar background into `url(undefined)`, which the
+// browser resolves against the page and requests — the `/undefined` 404 seen on every load.
+const avatarBackgroundImage = computed(() =>
+  userInfo.face ? `url(${userInfo.face.replace('http:', '')})` : undefined,
+)
+
 const hideTopBar = ref<boolean>(false)
 const headerTarget = ref(null)
 const { isOutside: isOutsideTopBar } = useMouseInElement(headerTarget)
@@ -882,23 +889,13 @@ defineExpose({
                 type="topBar"
                 class="avatar-img"
                 :class="{ hover: popupVisible.userPanel }"
-                :style="{
-                  backgroundImage: `url(${`${userInfo.face}`.replace(
-                    'http:',
-                    '',
-                  )})`,
-                }"
+                :style="{ backgroundImage: avatarBackgroundImage }"
               />
               <div
                 ref="avatarShadow"
                 class="avatar-shadow"
                 :class="{ hover: popupVisible.userPanel }"
-                :style="{
-                  backgroundImage: `url(${`${userInfo.face}`.replace(
-                    'http:',
-                    '',
-                  )})`,
-                }"
+                :style="{ backgroundImage: avatarBackgroundImage }"
               />
               <svg
                 v-if="userInfo.vip?.status === 1"

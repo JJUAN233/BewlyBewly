@@ -40,11 +40,16 @@
   --uno: "hidden";
 }
 
-.modal-enter-active,
+.modal-enter-active {
+  // 打开时不给根节点加 opacity / transform：根节点一旦带上这些属性就成了 backdrop root，
+  // 面板的 backdrop-filter 在动画期间只能采样根节点内部（采不到后面的页面），等于毛玻璃被临时
+  // 关掉、动画结束才「啪」一下恢复。淡入交给遮罩自己做（见 Dialog.vue 的 .dialog-mask），
+  // 面板连同毛玻璃从第一帧就是最终样子。
+  --uno: "transition-all duration-500";
+}
 .modal-leave-active {
   --uno: "transition-all duration-500 transform-gpu";
 }
-.modal-enter-from,
 .modal-leave-to {
   --uno: "opacity-0 scale-105";
 }

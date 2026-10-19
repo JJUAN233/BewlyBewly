@@ -10,11 +10,18 @@
   --bew-top-bar-height: 64px;
 
   // #region Filters
+  // 毛玻璃模糊强度的比例（0-1），由设置里的强度条写进来（见 necessarySettingsWatchers）：
+  // 下面三个变量各自按它缩放，所以拖强度条时不用为每个百分比准备一条规则
+  --bew-glass-blur-scale: 1;
+
   // Use this in all components (except dialogs) if you want to add a frosted glass effect
-  --bew-filter-glass-1: blur(20px) saturate(180%);
+  --bew-filter-glass-1: blur(calc(20px * var(--bew-glass-blur-scale))) saturate(180%);
 
   // Use this in dialogs if you want to add a frosted glass effect
-  --bew-filter-glass-2: blur(30px) saturate(180%);
+  --bew-filter-glass-2: blur(calc(30px * var(--bew-glass-blur-scale))) saturate(180%);
+
+  // Same as above but thicker; for dialogs that want more frosting than the rest
+  --bew-filter-glass-2-strong: blur(calc(40px * var(--bew-glass-blur-scale))) saturate(180%);
 
   // Apply this to the Bilibili icon if it is an image with the brand's original blue or pink color
   // Change it to glow effect to matches the user's theme color
@@ -264,6 +271,7 @@
   --bew-content-opacity: 1;
   --bew-filter-glass-1: none;
   --bew-filter-glass-2: none;
+  --bew-filter-glass-2-strong: none;
   --bew-shadow-edge-glow-1: 0 0 0 transparent;
   --bew-shadow-edge-glow-2: 0 0 0 transparent;
   --bew-fill-alt: var(--bew-content-solid);
@@ -272,12 +280,6 @@
 :host(.disable-frosted-glass.dark),
 :root.disable-frosted-glass.dark {
   --bew-fill-alt: var(--bew-fill-1);
-}
-
-:host(.reduce-frosted-glass-blur),
-:root.reduce-frosted-glass-blur {
-  --bew-filter-glass-1: blur(10px) saturate(180%);
-  --bew-filter-glass-2: blur(20px) saturate(180%);
 }
 
 :host(.disable-shadow),

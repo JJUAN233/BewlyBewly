@@ -77,7 +77,7 @@ async function getFavoriteCategories() {
     up_mid: getUserID(),
   })
     .then((res) => {
-      if (res.code === 0) {
+      if (res.code === 0 && res.data) {
         Object.assign(favoriteCategories, res.data.list)
         noMoreContent.value = false
       }
@@ -97,7 +97,9 @@ function getFavoriteResources() {
   })
     .then((res) => {
       const { code, data } = res
-      if (code === 0) {
+      // Bilibili answers some folder requests with `code: 0` and a null payload, and `'medias' in
+      // null` throws. Check the payload is there before reading anything out of it.
+      if (code === 0 && data) {
         if ('medias' in data && Array.isArray(data.medias) && data.medias.length > 0)
           favoriteResources.push(...data.medias)
 

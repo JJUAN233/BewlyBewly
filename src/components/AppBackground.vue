@@ -57,6 +57,17 @@ const themeColorLinearGradientBackground = computed((): string => {
     hsl(${themeColorHue.value}, ${themeColorSaturation.value}%, 100%) 100%)`
 })
 
+// Only build a `url()` when there really is a wallpaper. Interpolating a value that has not been
+// read back from storage yet turns into `url('undefined')`, which the browser resolves against
+// the page and requests — a `GET /undefined` 404.
+function toBackgroundImage(wallpaper: string | undefined) {
+  return wallpaper ? `url('${wallpaper}')` : undefined
+}
+const homepageBackgroundImage = computed(() => toBackgroundImage(settings.value.wallpaper))
+const searchPageBackgroundImage = computed(() => toBackgroundImage(
+  settings.value.individuallySetSearchPageWallpaper ? settings.value.searchPageWallpaper : settings.value.wallpaper,
+))
+
 watch(() => settings.value.wallpaperMaskOpacity, () => {
   setAppWallpaperMaskingOpacity()
 })
@@ -105,7 +116,7 @@ function setAppWallpaperMaskingOpacity() {
         <div
           pos="absolute top-0 left-0" w-full h-full duration-300 bg="cover center $bew-homepage-bg"
           z--1 transform-gpu
-          :style="{ backgroundImage: `url('${settings.individuallySetSearchPageWallpaper ? settings.searchPageWallpaper : settings.wallpaper}')` }"
+          :style="{ backgroundImage: searchPageBackgroundImage }"
         />
         <!-- background mask -->
         <Transition name="fade">
@@ -122,7 +133,7 @@ function setAppWallpaperMaskingOpacity() {
       <div v-else>
         <!-- background -->
         <div
-          :style="{ backgroundImage: `url('${settings.wallpaper}')` }"
+          :style="{ backgroundImage: homepageBackgroundImage }"
           pos="absolute top-0 left-0" w-full h-full duration-300 bg="cover center $bew-homepage-bg"
           z--1 transform-gpu
         />

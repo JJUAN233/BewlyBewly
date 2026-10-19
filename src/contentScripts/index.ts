@@ -5,6 +5,7 @@ import { createApp } from 'vue'
 
 import { useDark } from '~/composables/useDark'
 import { BEWLY_MOUNTED } from '~/constants/globalEvents'
+import { setupVideoPageDownloadItem } from '~/contentScripts/views/videoPageDownloadItem'
 import { settings } from '~/logic'
 import { setupApp } from '~/logic/common-setup'
 import RESET_BEWLY_CSS from '~/styles/reset.css?raw'
@@ -197,14 +198,17 @@ async function onDOMLoaded() {
       document.body.appendChild(originalTopBar)
   }
 
+  // 播放页的「更多」菜单是 B 站自己的，往里面插一项「下载视频」
+  if (isVideoOrBangumiPage() && !isInIframe())
+    setupVideoPageDownloadItem(new AbortController())
+
   if (isSupportedPages() || isSupportedIframePages()) {
-    // Then inject the app
-    if (isHomePage()) {
-      injectApp()
-    }
-    else {
-      await injectAppWhenIdle()
-    }
+    // Inject straight away on every supported page. This used to wait for the browser to go idle
+    // everywhere but the home page, which meant the extension's styles and fonts only landed well
+    // after the page had already rendered — the content was painted with Bilibili's own font and
+    // then visibly re-rendered once the custom one was applied. That is most obvious on the pages
+    // that live in their own iframe, where the late work happens in a separate document.
+    injectApp()
   }
 
   // Reset the original Bilibili top bar display style
@@ -216,16 +220,6 @@ if (document.readyState !== 'loading')
   onDOMLoaded()
 else
   document.addEventListener('DOMContentLoaded', () => onDOMLoaded())
-
-function injectAppWhenIdle() {
-  return new Promise<void>((resolve) => {
-    // Inject app when idle
-    runWhenIdle(async () => {
-      injectApp()
-      resolve()
-    })
-  })
-}
 
 function injectApp() {
   // Remove bewly element if it already exists and the version is less than the current version

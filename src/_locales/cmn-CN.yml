@@ -128,7 +128,7 @@ settings:
     如果你正在使用自定义字体，建议移除缩进。
 
   disable_frosted_glass: 禁用毛玻璃效果
-  reduce_frosted_glass_blur: 降低毛玻璃模糊强度
+  frosted_glass_blur_strength: 毛玻璃模糊强度
   disable_shadow: 禁用阴影
 
   link_opening_behavior_opt:
@@ -406,17 +406,35 @@ dock:
 video_card:
   operation:
     not_interested: 不感兴趣
+
+    open_with: 打开方式
     open_in_new_tab: 新标签页打开
     open_in_background: 后台打开
     open_in_new_window: 新窗口打开
     open_in_current_tab: 当前标签页打开
     open_in_drawer: 抽屉打开
 
+    copy: 复制
     copy_video_link: 复制视频链接
     copy_bv_number: 复制 BV 号
     copy_av_number: 复制 AV 号
 
+    cover: 封面
     view_the_original_cover: 查看封面
+
+    download_cover: 下载封面
+    download_cover_done: 封面已保存
+    download_video: 下载视频
+    download_started: 「{title}」下载完成，已交给浏览器保存
+    download_progress: 正在下载「{title}」 {percent}%
+    download_codec: 编码
+    download_quality_hint: 画质越高，文件越大、下载时间越长。1080P 及以上是 DASH 音视频分离流，扩展会自动合流成单个文件。
+    download_progress_unknown: 正在下载「{title}」（已获取 {loaded} MB）
+    download_in_progress: 该视频正在下载中
+    download_failed: 下载失败：{reason}
+    download_error_no_bvid: 缺少视频编号
+    download_error_no_stream: 没有可用的视频流
+    download_error_segmented: 暂不支持分段视频
 
   group_contribution: '{firstAuthor} 等 {num} 人联合创作'
   video_removed: 视频已移除

@@ -134,9 +134,14 @@ watch(() => settings.value.language, (newValue) => {
       </SettingsItem>
       <SettingsItem
         v-if="!settings.disableFrostedGlass"
-        :title="$t('settings.reduce_frosted_glass_blur')"
+        :title="$t('settings.frosted_glass_blur_strength')"
       >
-        <Radio v-model="settings.reduceFrostedGlassBlur" />
+        <Slider
+          v-model="settings.frostedGlassBlurStrength"
+          :min="0"
+          :max="100"
+          :label="`${settings.frostedGlassBlurStrength}%`"
+        />
       </SettingsItem>
       <SettingsItem :title="$t('settings.disable_shadow')">
         <Radio v-model="settings.disableShadow" />

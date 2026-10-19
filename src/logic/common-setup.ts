@@ -3,12 +3,40 @@ import 'vue-toastification/dist/index.css'
 import { createPinia } from 'pinia'
 import type { App } from 'vue'
 import Toast, { POSITION } from 'vue-toastification'
-import { getCurrentContext } from 'webext-bridge'
 
 import components from '~/components'
 import { i18n } from '~/utils/i18n'
 
 const pinia = createPinia()
+
+/**
+ * Which part of the extension the current script runs in.
+ *
+ * This used to come from `webext-bridge`, and only the name was ever taken from it. Importing
+ * that package runs `initIntercoms()` at module scope, which opens a long-lived
+ * `runtime.connect()` port from every content script — and the browser closes every port of a
+ * page that goes into the back/forward cache, so each in-tab navigation logged
+ * `Unchecked runtime.lastError: … moved into back/forward cache`. Nothing here uses the library's
+ * messaging (the injected script talks through plain DOM events), so the name is computed
+ * locally instead.
+ */
+function getCurrentContext(): 'background' | 'content-script' | 'popup' | 'options' | 'devtools' | 'window' {
+  if (typeof window === 'undefined' || typeof document === 'undefined')
+    return 'background'
+
+  const { protocol, pathname } = location
+  if (protocol === 'chrome-extension:' || protocol === 'moz-extension:') {
+    if (pathname.includes('/popup'))
+      return 'popup'
+    if (pathname.includes('/options'))
+      return 'options'
+    if (pathname.includes('/devtools'))
+      return 'devtools'
+    return 'window'
+  }
+
+  return 'content-script'
+}
 
 export async function setupApp(app: App) {
   const context = getCurrentContext()

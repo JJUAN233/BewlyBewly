@@ -62,7 +62,9 @@ async function getAllWatchLaterList() {
   currentWatchLaterList.value.length = 0
   try {
     const res: WatchLaterResult = await api.watchlater.getAllWatchLaterList()
-    if (res.code === 0) {
+    // Bilibili answers some requests with `code: 0` and a null payload; reading `.list` off it
+    // throws. Check the payload is there first.
+    if (res.code === 0 && res.data) {
       allWatchLaterList.value = res.data.list
       watchLaterCount.value = allWatchLaterList.value.length
     }
@@ -101,37 +103,38 @@ function deleteWatchLaterItem(index: number, aid: number) {
     })
 }
 
+const showClearAllConfirm = ref<boolean>(false)
+const showRemoveWatchedConfirm = ref<boolean>(false)
+
 function handleClearAllWatchLater() {
-  const result = confirm(
-    t('watch_later.clear_all_confirm'),
-  )
-  if (result) {
-    isLoading.value = true
-    api.watchlater.clearAllWatchLater({
-      csrf: getCSRF(),
-    }).then((res) => {
-      if (res.code === 0)
-        initData()
-    }).finally(() => {
-      isLoading.value = false
-    })
-  }
+  showClearAllConfirm.value = true
+}
+
+function clearAllWatchLater() {
+  isLoading.value = true
+  api.watchlater.clearAllWatchLater({
+    csrf: getCSRF(),
+  }).then((res) => {
+    if (res.code === 0)
+      initData()
+  }).finally(() => {
+    isLoading.value = false
+  })
 }
 
 function handleRemoveWatchedVideos() {
-  const result = confirm(
-    t('watch_later.remove_watched_videos_confirm'),
-  )
-  if (result) {
-    api.watchlater.removeFromWatchLater({
-      viewed: true,
-      csrf: getCSRF(),
+  showRemoveWatchedConfirm.value = true
+}
+
+function removeWatchedVideos() {
+  api.watchlater.removeFromWatchLater({
+    viewed: true,
+    csrf: getCSRF(),
+  })
+    .then((res) => {
+      if (res.code === 0)
+        initData()
     })
-      .then((res) => {
-        if (res.code === 0)
-          initData()
-      })
-  }
 }
 
 function handlePlayAll() {
@@ -317,21 +320,28 @@ function handleMouseEnter(item: VideoItem) {
     </main>
 
     <aside relative w="full md:40% lg:30% xl:25%" order="1 md:2 lg:2">
+      <!--
+        吸附位置取「面板静止时的位置」＝页面顶部内边距（App.vue 的 p-t-[calc(var(--bew-top-bar-height)+10px)]）
+        加上面板自己的 my-10（2.5em，本项目的 uno 间距是 em 基准）。写死 120px 会比静止位置低 9px，
+        面板容器一旦被主内容列拉高就会多出余量、面板立刻下滑 9px，缩回时再弹回来（见 Favorites.vue 同处注释）。
+      -->
       <div
-        pos="sticky top-120px"
+        pos="sticky top-[calc(var(--bew-top-bar-height)+10px+2.5em)]"
         w-full h="230px md:[calc(100vh-160px)]"
         my-10
         rounded="$bew-radius"
         overflow-hidden
       >
         <!-- Frosted Glass Cover -->
+        <!-- 底色用扩展自己的表面色（不是固定的灰色），这样亮暗模式和主题设置都能带上；
+             模糊封面压在下面，开了毛玻璃时透出来当作底纹 -->
         <div
           pos="absolute top-0 left-0" w-full h-inherit
           z--1
         >
           <div
             absolute w-full h-inherit
-            bg="$bew-fill-4"
+            bg="$bew-elevated"
           />
           <img
             v-if="currentWatchLaterList[0]"
@@ -351,7 +361,7 @@ function handleMouseEnter(item: VideoItem) {
         >
           <picture
             class="hidden md:block"
-            rounded="$bew-radius" style="box-shadow: 0 16px 24px -12px rgba(0, 0, 0, .36)"
+            rounded="$bew-radius" shadow="$bew-shadow-2"
             aspect-video mb-4 bg="$bew-skeleton"
           >
             <img
@@ -360,12 +370,12 @@ function handleMouseEnter(item: VideoItem) {
             >
           </picture>
 
-          <h3 text="3xl white" fw-600 style="text-shadow: 0 0 12px rgba(0,0,0,.3)">
+          <h3 text="3xl $bew-text-1" fw-600>
             {{ t('watch_later.title') }} ({{ watchLaterCount }})
           </h3>
           <p v-if="watchLaterCount > 0" flex="~ col" gap-4>
             <Button
-              color="rgba(255,255,255,.35)" block text-color="white" strong flex-1
+              type="primary" block strong flex-1
               @click="handlePlayAll"
             >
               <template #left>
@@ -374,7 +384,7 @@ function handleMouseEnter(item: VideoItem) {
               {{ t('common.play_all') }}
             </Button>
             <Button
-              color="rgba(255,255,255,.35)" block text-color="white" strong flex-1
+              type="secondary" block strong flex-1
               @click="handleClearAllWatchLater"
             >
               <template #left>
@@ -383,7 +393,7 @@ function handleMouseEnter(item: VideoItem) {
               {{ t('watch_later.clear_all') }}
             </Button>
             <Button
-              color="rgba(255,255,255,.35)" block text-color="white" strong flex-1
+              type="secondary" block strong flex-1
               @click="handleRemoveWatchedVideos"
             >
               <template #left>
@@ -395,6 +405,18 @@ function handleMouseEnter(item: VideoItem) {
         </main>
       </div>
     </aside>
+
+    <!-- 确认框统一用扩展自己的 ConfirmDialog，不用浏览器原生的 confirm -->
+    <ConfirmDialog
+      v-model="showClearAllConfirm"
+      :message="t('watch_later.clear_all_confirm')"
+      @confirm="clearAllWatchLater"
+    />
+    <ConfirmDialog
+      v-model="showRemoveWatchedConfirm"
+      :message="t('watch_later.remove_watched_videos_confirm')"
+      @confirm="removeWatchedVideos"
+    />
   </div>
   <Empty v-else mt-6 :description="t('common.please_log_in_first')">
     <Button type="primary" @click="jumpToLoginPage()">

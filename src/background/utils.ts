@@ -4,10 +4,31 @@
 
 import type Browser from 'webextension-polyfill'
 
+import { signWbiParams } from './wbi'
+
 type FetchAfterHandler = ((data: Response) => Promise<any>) | ((data: any) => any)
 
-function toJsonHandler(data: Response): Promise<any> {
-  return data.json()
+async function toJsonHandler(data: Response): Promise<any> {
+  // Bilibili answers a request it does not want to serve — risk control (412), an expired cookie,
+  // a rate limit — with an HTML page instead of JSON. Parsing that blindly throws
+  // `Unexpected token '<', "<!DOCTYPE "…`, which surfaces as an uncaught rejection in the page and
+  // says nothing about what actually went wrong. Hand the callers the envelope they already know
+  // how to handle instead, and log what really came back so it can be diagnosed.
+  const copy = data.clone()
+  try {
+    return await data.json()
+  }
+  catch {
+    const body = await copy.text().catch(() => '')
+    console.error(
+      `[BewlyBewly] ${data.url} did not return JSON (HTTP ${data.status} ${data.statusText}): ${body.replace(/\s+/g, ' ').trim().slice(0, 200)}`,
+    )
+    return {
+      code: data.ok ? -1 : data.status,
+      message: `Request failed with HTTP ${data.status}`,
+      data: null,
+    }
+  }
 }
 function toData(data: Promise<any>): Promise<any> {
   return data
@@ -49,6 +70,11 @@ interface API {
   params?: {
     [key: string]: any
   }
+  /**
+   * Set for endpoints that answer 412 with an HTML page unless the request carries Bilibili's
+   * `wts`/`w_rid` pair. See `wbi.ts`.
+   */
+  wbi?: boolean
   afterHandle: ((response: Response) => Response | Promise<Response>)[]
 }
 // 重载API 可以为函数
@@ -79,7 +105,7 @@ function apiListenerFactory(API_MAP: APIMAP) {
   }
 }
 
-function doRequest(message: Message, api: API, sendResponse?: Function, cookies?: Browser.Cookies.Cookie[]) {
+async function doRequest(message: Message, api: API, sendResponse?: Function, cookies?: Browser.Cookies.Cookie[]) {
   try {
     let { contentScriptQuery, ...rest } = message
     // rest above two part body or params
@@ -97,6 +123,11 @@ function doRequest(message: Message, api: API, sendResponse?: Function, cookies?
       else
         targetParams[key] = rest[key]
     })
+
+    // Endpoints guarded by Bilibili's risk control need the `wts`/`w_rid` pair, otherwise they
+    // answer 412 with an HTML page instead of JSON.
+    if (api.wbi)
+      Object.assign(targetParams, await signWbiParams(targetParams))
 
     // generate params
     if (Object.keys(targetParams).length) {

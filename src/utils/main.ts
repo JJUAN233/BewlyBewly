@@ -174,7 +174,11 @@ export function isVideoOrBangumiPage(url: string = location.href): boolean {
     || /https?:\/\/(?:www\.)?bilibili\.com\/bangumi\/play\/.*/.test(url)
     // watch later playlist
     || /https?:\/\/(?:www\.)?bilibili\.com\/list\/watchlater\?bvid.*/.test(url)
-    || /https?:\/\/(?:www\.)?bilibili\.com\/watchlater\/list.*/.test(url)
+    // 注意：`/watchlater/list` 是「稍后再看」的列表页，不是播放页（点进去的视频会跳到
+    // `/list/watchlater/?bvid=...`）。这里曾经把它也算成播放页，于是它在 iframe 里（比如把
+    // 稍后再看这一项的页面切换器切到 B 站页面时）会被当成播放页而藏起顶部栏；此时外层页面
+    // 的顶部栏本来就是藏着的（见 App.vue 的 `showTopBar`），两边都没有顶栏，页面切换器就
+    // 一起消失了，用户再也切不回 BewlyBewly 页面。
     // favorite playlist
     || /https?:\/\/(?:www\.)?bilibili\.com\/list\/ml.*/.test(url)) {
     return true

@@ -18,7 +18,10 @@ export interface Settings {
   removeTheIndentFromChinesePunctuation: boolean
 
   disableFrostedGlass: boolean
+  /** 旧版是「降低毛玻璃模糊强度」开关，现在换成了下面的 0-100 强度条；保留字段只为把老用户的偏好迁移过来 */
   reduceFrostedGlassBlur: boolean
+  /** 毛玻璃模糊强度 0-100（100 = 默认强度）。-1 表示还没迁移过，见 necessarySettingsWatchers */
+  frostedGlassBlurStrength: number
   disableShadow: boolean
 
   enableVideoPreview: boolean
@@ -124,6 +127,7 @@ export const originalSettings: Settings = {
 
   disableFrostedGlass: true,
   reduceFrostedGlassBlur: false,
+  frostedGlassBlurStrength: -1,
   disableShadow: false,
 
   // Link Opening Behavior

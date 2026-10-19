@@ -118,7 +118,9 @@ async function getFavoriteResources(
       keyword,
     })
 
-    if (res.code === 0) {
+    // Bilibili answers some folder requests with `code: 0` and a null payload; reading
+    // `res.data.info` then throws. Check the payload is there first.
+    if (res.code === 0 && res.data) {
       activatedCategoryCover.value = res.data.info.cover
 
       if (Array.isArray(res.data.medias) && res.data.medias.length > 0)
@@ -164,20 +166,27 @@ function jumpToLoginPage() {
   location.href = 'https://passport.bilibili.com/login'
 }
 
+const showUnfavoriteConfirm = ref<boolean>(false)
+const unfavoriteTarget = ref<FavoriteResource | null>(null)
+
 function handleUnfavorite(favoriteResource: FavoriteResource) {
-  const result = confirm(
-    t('favorites.unfavorite_confirm'),
-  )
-  if (result) {
-    api.favorite.patchDelFavoriteResources({
-      resources: `${favoriteResource.id}:${favoriteResource.type}`,
-      media_id: selectedCategory.value?.id,
-      csrf: getCSRF(),
-    }).then((res) => {
-      if (res.code === 0)
-        favoriteResources.splice(favoriteResources.indexOf(favoriteResource as FavoriteItem), 1)
-    })
-  }
+  unfavoriteTarget.value = favoriteResource
+  showUnfavoriteConfirm.value = true
+}
+
+function unfavorite() {
+  const favoriteResource = unfavoriteTarget.value
+  if (!favoriteResource)
+    return
+
+  api.favorite.patchDelFavoriteResources({
+    resources: `${favoriteResource.id}:${favoriteResource.type}`,
+    media_id: selectedCategory.value?.id,
+    csrf: getCSRF(),
+  }).then((res) => {
+    if (res.code === 0)
+      favoriteResources.splice(favoriteResources.indexOf(favoriteResource as FavoriteItem), 1)
+  })
 }
 
 function isMusic(item: FavoriteResource) {
@@ -270,21 +279,30 @@ function isMusic(item: FavoriteResource) {
     </main>
 
     <aside relative w="full md:40% lg:30% xl:25%" class="hidden md:block" order="1 md:2 lg:2">
+      <!--
+        吸附位置取「面板静止时的位置」＝页面顶部内边距（App.vue 的 p-t-[calc(var(--bew-top-bar-height)+10px)]）
+        加上面板自己的 my-10（2.5em，本项目的 uno 间距是 em 基准）。
+        原先写死 top-120px，比静止位置低 9px：面板容器被 flex 行拉高、平时刚好没有余量所以动不了，
+        一旦主内容列高过面板就多出余量（收藏页进入时列表会短暂越过这个高度），面板立刻下滑 9px，
+        缩回时再弹回来——就是那下「向下跳动后复原」。
+      -->
       <div
-        pos="sticky top-120px"
+        pos="sticky top-[calc(var(--bew-top-bar-height)+10px+2.5em)]"
         w-full h="auto md:[calc(100vh-160px)]"
         my-10
         rounded="$bew-radius"
         overflow-hidden
       >
         <!-- Frosted Glass Cover -->
+        <!-- 底色用扩展自己的表面色（不是固定的灰色），这样亮暗模式和主题设置都能带上；
+             模糊封面压在下面，开了毛玻璃时透出来当作底纹 -->
         <div
           pos="absolute top-0 left-0" w-full h-full
           z--1
         >
           <div
             absolute w-full h-full
-            bg="$bew-fill-4"
+            bg="$bew-elevated"
           />
           <img
             v-if="activatedCategoryCover"
@@ -303,7 +321,7 @@ function isMusic(item: FavoriteResource) {
           p-6
         >
           <picture
-            rounded="$bew-radius" style="box-shadow: 0 16px 24px -12px rgba(0, 0, 0, .36)"
+            rounded="$bew-radius" shadow="$bew-shadow-2"
             aspect-video mb-4 bg="$bew-skeleton"
           >
             <img
@@ -315,12 +333,12 @@ function isMusic(item: FavoriteResource) {
             </div>
           </picture>
 
-          <h3 text="3xl white" fw-600 style="text-shadow: 0 0 12px rgba(0,0,0,.3)">
+          <h3 text="3xl $bew-text-1" fw-600>
             {{ selectedCategory?.title }}
           </h3>
           <p flex="~ col" gap-4>
             <Button
-              color="rgba(255,255,255,.35)" block text-color="white" strong flex-1
+              type="primary" block strong flex-1
               @click="handlePlayAll"
             >
               <template #left>
@@ -332,23 +350,33 @@ function isMusic(item: FavoriteResource) {
           <ul
             class="category-list" h-full min-h-200px
             overflow-overlay
-            border="1 color-[rgba(255,255,255,.2)]"
+            border="1 $bew-border-color"
             rounded="$bew-radius"
           >
             <li
               v-for="item in favoriteCategories" :key="item.id"
-              border-b="1 color-[rgba(255,255,255,.2)]"
-              lh-30px px-4 cursor-pointer hover:bg="[rgba(255,255,255,.35)]"
-              duration-300 color-white flex justify-between
-              :style="{ background: item.id === selectedCategory?.id ? 'rgba(255,255,255,.35)' : '', pointerEvents: isFullPageLoading ? 'none' : 'auto' }"
+              class="category-item"
+              :class="{ 'category-active': item.id === selectedCategory?.id }"
+              border-b="1 $bew-border-color"
+              lh-30px px-4 cursor-pointer
+              duration-300 flex justify-between
+              :style="{ pointerEvents: isFullPageLoading ? 'none' : 'auto' }"
               @click="changeCategory(item)"
             >
-              <span>{{ item.title }}</span> <span ml-2 color-white color-opacity-60>{{ item.media_count }}</span>
+              <span>{{ item.title }}</span>
+              <span ml-2 opacity-60>{{ item.media_count }}</span>
             </li>
           </ul>
         </main>
       </div>
     </aside>
+
+    <!-- 确认框统一用扩展自己的 ConfirmDialog，不用浏览器原生的 confirm -->
+    <ConfirmDialog
+      v-model="showUnfavoriteConfirm"
+      :message="t('favorites.unfavorite_confirm')"
+      @confirm="unfavorite"
+    />
   </div>
   <Empty v-else mt-6 :description="t('common.please_log_in_first')">
     <Button type="primary" @click="jumpToLoginPage()">
@@ -362,6 +390,17 @@ function isMusic(item: FavoriteResource) {
   transform: translateY(-70px);
 }
 
+.category-item {
+  // 选中项用主题色，其余项 hover 走中性填充；两者都由变量决定，所以会跟着主题走
+  &:not(.category-active):hover {
+    --uno: "bg-$bew-fill-2";
+  }
+}
+
+.category-active {
+  --uno: "bg-$bew-theme-color-20 color-$bew-theme-color";
+}
+
 .category-list {
   &::-webkit-scrollbar {
     width: 8px;
@@ -373,7 +412,8 @@ function isMusic(item: FavoriteResource) {
   }
 
   &::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.35);
+    // 与全局滚动条保持一致
+    background-color: rgba(120, 120, 140, 0.44);
     border-radius: 20px;
   }
 

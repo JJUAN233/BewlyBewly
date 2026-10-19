@@ -38,7 +38,9 @@ function getAllWatchLaterList() {
 
   api.watchlater.getAllWatchLaterList()
     .then((res: WatchLaterResult) => {
-      if (res.code === 0)
+      // Bilibili answers some requests with `code: 0` and a null payload; reading `.list` off it
+      // throws. Check the payload is there first.
+      if (res.code === 0 && res.data)
         Object.assign(watchLaterList, res.data.list)
 
       isLoading.value = false

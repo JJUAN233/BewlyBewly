@@ -141,22 +141,24 @@ export function setupNecessarySettingsWatchers() {
     { immediate: true },
   )
 
+  // 强度只写成一个比例变量，三个毛玻璃变量各自按它缩放（见 variables.scss），
+  // 这样拖动强度条时不必为每个百分比准备一条规则
   watch(
-    () => settings.value.reduceFrostedGlassBlur,
-    () => {
+    () => settings.value.frostedGlassBlurStrength,
+    (newValue) => {
+      // -1（还没迁移过，比如刚重置完设置）或取值异常时，先从旧开关折一个值出来；
+      // 这次赋值会再触发一次本 watcher，缩放交给那一次处理
+      if (!Number.isFinite(newValue) || newValue < 0) {
+        settings.value.frostedGlassBlurStrength = settings.value.reduceFrostedGlassBlur ? 50 : 100
+        return
+      }
+
+      const scale = `${Math.min(Math.max(newValue, 0), 100) / 100}`
       const bewlyElement = document.querySelector('#bewly') as HTMLElement
-      if (settings.value.reduceFrostedGlassBlur) {
-        if (bewlyElement)
-          bewlyElement.classList.add('reduce-frosted-glass-blur')
+      if (bewlyElement)
+        bewlyElement.style.setProperty('--bew-glass-blur-scale', scale)
 
-        document.documentElement.classList.add('reduce-frosted-glass-blur')
-      }
-      else {
-        if (bewlyElement)
-          bewlyElement.classList.remove('reduce-frosted-glass-blur')
-
-        document.documentElement.classList.remove('reduce-frosted-glass-blur')
-      }
+      document.documentElement.style.setProperty('--bew-glass-blur-scale', scale)
     },
     { immediate: true },
   )

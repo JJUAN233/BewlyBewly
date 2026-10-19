@@ -128,7 +128,7 @@ settings:
     如果你正在使用自訂字型，建議移除縮排。
 
   disable_frosted_glass: 停用毛玻璃效果
-  reduce_frosted_glass_blur: 降低毛玻璃模糊強度
+  frosted_glass_blur_strength: 毛玻璃模糊強度
   disable_shadow: 停用陰影
 
   link_opening_behavior_opt:
@@ -407,17 +407,35 @@ dock:
 video_card:
   operation:
     not_interested: 不感興趣
+
+    open_with: 開啟方式
     open_in_new_tab: 新標籤頁開啓
     open_in_background: 後台開啓
     open_in_new_window: 新視窗開啓
     open_in_current_tab: 目前索引標籤開啓
     open_in_drawer: 抽屜開啓
 
+    copy: 複製
     copy_video_link: 複製影片連結
     copy_bv_number: 複製 BV 號
     copy_av_number: 複製 AV 號
 
+    cover: 封面
     view_the_original_cover: 檢視封面
+
+    download_cover: 下載封面
+    download_cover_done: 封面已儲存
+    download_video: 下載影片
+    download_started: 「{title}」下載完成，已交給瀏覽器儲存
+    download_progress: 正在下載「{title}」 {percent}%
+    download_codec: 編碼
+    download_quality_hint: 畫質越高，檔案越大、下載時間越長。1080P 及以上是 DASH 音視訊分離串流，擴充功能會自動合流成單一檔案。
+    download_progress_unknown: 正在下載「{title}」（已取得 {loaded} MB）
+    download_in_progress: 該影片正在下載中
+    download_failed: 下載失敗：{reason}
+    download_error_no_bvid: 缺少影片編號
+    download_error_no_stream: 沒有可用的影片串流
+    download_error_segmented: 暫不支援分段影片
 
   group_contribution: '{firstAuthor} 等 {num} 人共同創作'
   video_removed: 影片已移除

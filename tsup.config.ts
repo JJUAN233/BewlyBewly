@@ -17,6 +17,10 @@ export default defineConfig(() => ({
   },
   outDir,
   format: ['esm'],
+  // The background script is registered as a plain service worker (the manifest does not set
+  // `"type": "module"`), so it cannot contain a bare `import`. Anything listed in `dependencies`
+  // is external by default and would be emitted as an import — `md5` has to be bundled in.
+  noExternal: ['md5'],
   target: 'esnext',
   ignoreWatch: ['**/extension/**', '**/extension-firefox/**', '**/extension-safari/**'],
   splitting: false,

@@ -97,15 +97,16 @@ function handleExportSettings() {
   URL.revokeObjectURL(url)
 }
 
+const showResetConfirm = ref<boolean>(false)
+
 function handleResetSettings() {
-  const result = confirm(
-    t('settings.reset_settings_confirm'),
-  )
-  if (result) {
-    // Remember the last selected language when resetting settings
-    originalSettings.language = settings.value.language
-    settings.value = originalSettings
-  }
+  showResetConfirm.value = true
+}
+
+function resetSettings() {
+  // Remember the last selected language when resetting settings
+  originalSettings.language = settings.value.language
+  settings.value = originalSettings
 }
 
 async function checkGitHubRelease() {
@@ -381,6 +382,13 @@ async function checkGitHubRelease() {
         </Dialog>
       </section> -->
     </div>
+
+    <!-- 确认框统一用扩展自己的 ConfirmDialog，不用浏览器原生的 confirm -->
+    <ConfirmDialog
+      v-model="showResetConfirm"
+      :message="t('settings.reset_settings_confirm')"
+      @confirm="resetSettings"
+    />
   </div>
 </template>
 

@@ -67,7 +67,9 @@ function getHistoryList() {
           : 0,
   })
     .then(async (res: HistoryResult) => {
-      if (res.code === 0) {
+      // Bilibili answers some requests with `code: 0` and a null payload; reading `.list` off it
+      // throws. Check the payload is there first.
+      if (res.code === 0 && res.data) {
         if (Array.isArray(res.data.list) && res.data.list.length > 0)
           historyList.push(...res.data.list)
 
@@ -95,7 +97,7 @@ function searchHistoryList() {
     keyword: keyword.value,
   })
     .then((res: HistorySearchResult) => {
-      if (res.code === 0) {
+      if (res.code === 0 && res.data) {
         if (historyList.length !== 0 && res.data.list.length < 20) {
           isLoading.value = false
           noMoreContent.value = true
@@ -200,28 +202,20 @@ function clearAllHistory() {
     })
 }
 
+const showClearHistoryConfirm = ref<boolean>(false)
+const showPauseHistoryConfirm = ref<boolean>(false)
+const showTurnOnHistoryConfirm = ref<boolean>(false)
+
 function handleClearAllWatchHistory() {
-  const result = confirm(
-    t('history.clear_all_watch_history_confirm'),
-  )
-  if (result)
-    clearAllHistory()
+  showClearHistoryConfirm.value = true
 }
 
 function handlePauseWatchHistory() {
-  const result = confirm(
-    t('history.pause_watch_history_confirm'),
-  )
-  if (result)
-    setHistoryPauseStatus(true)
+  showPauseHistoryConfirm.value = true
 }
 
 function handleTurnOnWatchHistory() {
-  const result = confirm(
-    t('history.turn_on_watch_history_confirm'),
-  )
-  if (result)
-    setHistoryPauseStatus(false)
+  showTurnOnHistoryConfirm.value = true
 }
 
 function jumpToLoginPage() {
@@ -485,7 +479,9 @@ function handleMouseEnter(item: HistoryItem) {
     </main>
 
     <aside relative w="full md:40% lg:30% xl:25%" order="1 md:2 lg:2">
-      <div pos="sticky top-120px" flex="~ col gap-4" justify-start my-10 w-full>
+      <!-- 吸附位置取面板静止时的位置：页面顶部内边距 + 自己的 my-10（2.5em）。写死 120px 比静止位置
+           低 9px，主内容列一旦高过面板就会让面板下滑 9px 再弹回，见 Favorites.vue 同处注释。 -->
+      <div pos="sticky top-[calc(var(--bew-top-bar-height)+10px+2.5em)]" flex="~ col gap-4" justify-start my-10 w-full>
         <input
           v-model.lazy.trim="keyword"
           type="text"
@@ -539,6 +535,23 @@ function handleMouseEnter(item: HistoryItem) {
         </Button>
       </div>
     </aside>
+
+    <!-- 确认框统一用扩展自己的 ConfirmDialog，不用浏览器原生的 confirm -->
+    <ConfirmDialog
+      v-model="showClearHistoryConfirm"
+      :message="t('history.clear_all_watch_history_confirm')"
+      @confirm="clearAllHistory"
+    />
+    <ConfirmDialog
+      v-model="showPauseHistoryConfirm"
+      :message="t('history.pause_watch_history_confirm')"
+      @confirm="setHistoryPauseStatus(true)"
+    />
+    <ConfirmDialog
+      v-model="showTurnOnHistoryConfirm"
+      :message="t('history.turn_on_watch_history_confirm')"
+      @confirm="setHistoryPauseStatus(false)"
+    />
   </div>
   <Empty v-else mt-6 :description="t('common.please_log_in_first')">
     <Button type="primary" @click="jumpToLoginPage()">

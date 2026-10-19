@@ -3,7 +3,10 @@ import { AHS } from '../../utils'
 
 const API_VIDEO = {
   getRecommendVideos: {
-    url: 'https://api.bilibili.com/x/web-interface/index/top/feed/rcmd',
+    // Bilibili moved this feed to the `wbi` path. The old `/x/web-interface/index/top/feed/rcmd`
+    // is answered with a 412 HTML page by risk control, which is what made the homepage feed come
+    // back as `Unexpected token '<'` and left the page without any videos.
+    url: 'https://api.bilibili.com/x/web-interface/wbi/index/top/feed/rcmd',
     _fetch: {
       method: 'get',
     },
@@ -14,6 +17,8 @@ const API_VIDEO = {
       ps: 30,
       plat: 1,
     },
+    // The `wbi` path expects the `wts`/`w_rid` pair to be signed
+    wbi: true,
     afterHandle: AHS.J_D,
   },
   getAppRecommendVideos: {

@@ -35,17 +35,34 @@ const showBewlyOrBiliPageSwitcher = computed(() => {
   return false
 })
 
+/**
+ * 当前看到的是 B 站页面还是 BewlyBewly 页面——决定哪个选项高亮。
+ *
+ * iframe 里那份顶栏永远对着 B 站页面。外层则要看这一项的配置：切到 B 站页面之后外层顶栏并不会
+ * 让给 iframe 里那份（那样会消失后重载，见 `~/constants/iframe.ts`），顶栏一直是外层这一份，所以
+ * 这里必须按配置判断，否则高亮会一直停在 BewlyBewly 上。
+ */
+const isUsingOriginalBiliPage = computed(() => {
+  if (isInIframe())
+    return true
+  return settings.value.dockItemsConfig.find(item => item.page === activatedPage.value)?.useOriginalBiliPage || false
+})
+
 function switchPage(useOriginalBiliPage: boolean) {
+  if (isInIframe()) {
+    // iframe 里别自己改配置：它的地址里没有 `?page=`，`activatedPage` 只能退化成「第一个可见的
+    // dock 项」，写下去的是另一个页面的配置（而且会持久化到 storage）。父页面才知道当前真正
+    // 是哪个页面，改配置的活交给它——它收到消息后会去改对外暴露的那个页面。
+    parent.postMessage(
+      useOriginalBiliPage ? IFRAME_PAGE_SWITCH_BILI : IFRAME_PAGE_SWITCH_BEWLY,
+      '*',
+    )
+    return
+  }
+
   const dockItem = settings.value.dockItemsConfig.find(dockItem => dockItem.page === activatedPage.value)
   if (dockItem) {
     dockItem.useOriginalBiliPage = useOriginalBiliPage
-  }
-
-  if (isInIframe()) {
-    if (useOriginalBiliPage)
-      parent.postMessage(IFRAME_PAGE_SWITCH_BILI, '*')
-    else
-      parent.postMessage(IFRAME_PAGE_SWITCH_BEWLY, '*')
   }
 }
 </script>
@@ -63,7 +80,7 @@ function switchPage(useOriginalBiliPage: boolean) {
       v-for="option in options" :key="option.name"
       class="bewly-bili-switcher-button"
       :class="{
-        active: option.useOriginalBiliPage === isInIframe(),
+        active: option.useOriginalBiliPage === isUsingOriginalBiliPage,
       }"
       rounded-inherit text="$bew-text-2 hover:$bew-text-1 xs" p="x-2 lg:x-4" bg="hover:$bew-fill-2"
       fw-bold duration-300

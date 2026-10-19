@@ -58,9 +58,10 @@ export function useDark() {
     if (isDark.value) {
       document.querySelector('#bewly')?.classList.add('dark')
       document.documentElement.classList.add('dark')
-      nextTick(() => {
-        document.body?.classList.add('dark')
-      })
+      // Applied synchronously, together with the classes above: the update callback of the view
+      // transition only waits for the work done inside it, so a class queued with `nextTick()`
+      // could miss the snapshot and leave the captured state differing from the real one.
+      document.body?.classList.add('dark')
       // bili_dark is bilibili's official dark mode class
       document.documentElement.classList.add('bili_dark')
 
@@ -70,9 +71,7 @@ export function useDark() {
     else {
       document.querySelector('#bewly')?.classList?.remove('dark')
       document.documentElement.classList.remove('dark')
-      nextTick(() => {
-        document.body?.classList.remove('dark')
-      })
+      document.body?.classList.remove('dark')
       document.documentElement.classList.remove('bili_dark')
 
       setCookie('theme_style', 'light', 365 * 10)
@@ -116,6 +115,17 @@ export function useDark() {
         Math.max(x, innerWidth - x),
         Math.max(y, innerHeight - y),
       )
+      // The reveal animation itself lives in `main.scss`, as a CSS animation on the
+      // `::view-transition-*` pseudo-elements. All it needs from here is where the circle starts
+      // and how far it has to reach — the pseudo-elements inherit custom properties from the
+      // root. A CSS animation is torn down together with the pseudo-element it runs on, so unlike
+      // an animation created from script it cannot outlive the transition and interfere with the
+      // next one.
+      const root = document.documentElement
+      root.style.setProperty('--bew-color-mode-x', `${x}px`)
+      root.style.setProperty('--bew-color-mode-y', `${y}px`)
+      root.style.setProperty('--bew-color-mode-radius', `${endRadius}px`)
+
       // https://github.com/vueuse/vueuse/pull/3129
       const style = document.createElement('style')
       const styleString = `
@@ -140,34 +150,32 @@ export function useDark() {
       bewlyWrapper.appendChild(shadowDomStyle)
 
       // @ts-expect-error: Transition API
-      const transition = document.startViewTransition(async () => {
+      const transition = document.startViewTransition(() => {
         updateThemeSettings()
-        await nextTick()
+        // Apply the new appearance in this very task instead of waiting for the settings watcher
+        // to flush. The update callback must stay synchronous: while the browser waits for a
+        // promise returned by it, it is free to paint the document — which is already in the new
+        // theme by then. That paint shows the page in the new theme for a moment, and the old
+        // snapshot is then put back on top for the reveal, so the theme change is seen twice —
+        // the flicker. With a synchronous callback there is no such gap.
+        setAppAppearance()
       })
 
-      transition.ready.then(() => {
-        const clipPath = [
-              `circle(0px at ${x}px ${y}px)`,
-              `circle(${endRadius}px at ${x}px ${y}px)`,
-        ]
-        const animation = document.documentElement.animate(
-          {
-            clipPath: currentAppColorScheme.value === 'dark'
-              ? [...clipPath].reverse()
-              : clipPath,
-          },
-          {
-            duration: 300,
-            easing: 'ease-in-out',
-            pseudoElement: currentAppColorScheme.value === 'dark'
-              ? '::view-transition-old(root)'
-              : '::view-transition-new(root)',
-          },
-        )
-        animation.addEventListener('finish', () => {
-          document.head.removeChild(style!)
-          bewlyWrapper.removeChild(shadowDomStyle!)
-        }, { once: true })
+      // Taking the helper styles back out must not hang off an animation's `finish` event: a
+      // skipped transition never fires it, which would leave `transition: none !important` and
+      // `will-change: background` applied to the page for good — the latter promotes every element
+      // to its own composited layer, which slows the whole page down and leaves the dock buttons
+      // looking blurry.
+      //
+      // `finished` fulfils when the transition is merely skipped, but it *rejects* when the update
+      // callback throws. A plain `.then()` would then skip the cleanup entirely and leak those
+      // styles, so both outcomes have to be handled.
+      transition.finished.finally(() => {
+        style.remove()
+        shadowDomStyle.remove()
+        root.style.removeProperty('--bew-color-mode-x')
+        root.style.removeProperty('--bew-color-mode-y')
+        root.style.removeProperty('--bew-color-mode-radius')
       })
     }
   }

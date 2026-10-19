@@ -2,9 +2,12 @@
 import { useEventListener, useThrottleFn, useToggle } from '@vueuse/core'
 import type { Ref } from 'vue'
 
+import type { Video } from '~/components/VideoCard/types'
+import DownloadDialog from '~/components/VideoCard/VideoCardContextMenu/components/DownloadDialog.vue'
 import type { BewlyAppProvider } from '~/composables/useAppProvider'
 import { useDark } from '~/composables/useDark'
-import { BEWLY_MOUNTED, DRAWER_VIDEO_ENTER_PAGE_FULL, DRAWER_VIDEO_EXIT_PAGE_FULL, IFRAME_PAGE_SWITCH_BEWLY, IFRAME_PAGE_SWITCH_BILI, OVERLAY_SCROLL_BAR_SCROLL } from '~/constants/globalEvents'
+import { BEWLY_MOUNTED, DRAWER_VIDEO_ENTER_PAGE_FULL, DRAWER_VIDEO_EXIT_PAGE_FULL, IFRAME_PAGE_SWITCH_BEWLY, IFRAME_PAGE_SWITCH_BILI, IFRAME_THEME_CHANGE, OPEN_VIDEO_DOWNLOAD, OVERLAY_SCROLL_BAR_SCROLL } from '~/constants/globalEvents'
+import { PAGE_SWITCHER_IFRAME_NAME } from '~/constants/iframe'
 import { AppPage } from '~/enums/appEnums'
 import { settings } from '~/logic'
 import { type DockItem, useMainStore } from '~/stores/mainStore'
@@ -51,8 +54,27 @@ const reachTop = ref<boolean>(true)
 const iframeDrawerURL = ref<string>('')
 const showIframeDrawer = ref<boolean>(false)
 
+// 播放页「更多」菜单里的「下载视频」：菜单是 B 站自己的，那边只能派发事件，由这里弹出对话框
+const downloadVideoTarget = ref<Video | null>(null)
+const showDownloadVideoDialog = ref<boolean>(false)
+useEventListener(window, OPEN_VIDEO_DOWNLOAD, (event: CustomEvent) => {
+  const { bvid, title } = event.detail || {}
+  if (!bvid)
+    return
+  downloadVideoTarget.value = { id: 0, bvid, title: title || bvid, cover: '', threePointV2: [] }
+  showDownloadVideoDialog.value = true
+})
+
 const iframePageRef = ref()
 useEventListener(window, 'message', ({ data }) => {
+  // The page hosting this frame is cross-origin, so it cannot reach into this document to switch
+  // the theme itself. It mirrors its setting here instead and this frame's own `useDark()` takes
+  // it from there. See the `IframePage` component.
+  if (data?.type === IFRAME_THEME_CHANGE) {
+    settings.value.theme = data.theme
+    return
+  }
+
   switch (data) {
     case IFRAME_PAGE_SWITCH_BEWLY:
       {
@@ -93,7 +115,18 @@ const showBewlyPage = computed((): boolean => {
 
   return isHomePage() && !settings.value.useOriginalBilibiliHomepage
 })
+/**
+ * 自己是不是「页面切换器」用来装 B 站页面的那个 iframe 里的那份 app。
+ * 是的话顶栏由外层页面画（见 `~/constants/iframe.ts`），这份不画——否则切过去时外层顶栏会先卸载、
+ * 再等这里的 B 站文档把整个 app 连同顶栏从零启动一遍，看起来就是「顶部的元素消失后重载」。
+ */
+const isInPageSwitcherFrame = isInIframe() && window.name === PAGE_SWITCHER_IFRAME_NAME
+
 const showTopBar = computed((): boolean => {
+  // 页面切换器的 iframe：顶栏交给外层页面
+  if (isInPageSwitcherFrame)
+    return false
+
   // When using the open in drawer feature, the iframe inside the page will hide the top bar
   if (isVideoOrBangumiPage() && isInIframe())
     return false
@@ -102,14 +135,18 @@ const showTopBar = computed((): boolean => {
   if (isNotificationPage() && settings.value.openNotificationsPageAsDrawer && isInIframe())
     return false
 
-  // When the user switches to the original Bilibili page, BewlyBewly will only show the top bar inside the iframe.
-  // This helps prevent the outside top bar from covering the contents.
+  // When the user switches to the original Bilibili page, the top bar used to be handed over to the one
+  // inside the iframe. That is what made the top bar disappear and reload — the iframe's copy boots the
+  // whole app from scratch. Now the outside top bar keeps drawing it the whole time while the iframe's
+  // copy renders nothing (see the early return above), so nothing reloads.
   // reference: https://github.com/BewlyBewly/BewlyBewly/issues/1235
 
   // when using original bilibili homepage, show top bar
   return settings.value.useOriginalBilibiliHomepage
   // when on home page and not using original bilibili page, show top bar
     || (isHomePage() && !settingsStore.getDockItemIsUseOriginalBiliPage(activatedPage.value) && !isInIframe())
+  // when a dock item is switched to the original bilibili page, the (outside) top bar stays as well
+    || (isHomePage() && !!iframePageURL.value)
   // when in iframe and using original bilibili page, show top bar
     || (settingsStore.getDockItemIsUseOriginalBiliPage(activatedPage.value) && isInIframe())
   // when not on home page, show top bar
@@ -129,10 +166,12 @@ watch(
       window.history.replaceState({}, '', url.toString())
     }
 
-    if (scrollbarRef.value) {
-      const osInstance = scrollbarRef.value.osInstance()
+    // `osInstance()` is undefined while the scrollbar component has not mounted yet — which
+    // happens on the first run and whenever the BewlyBewly page is swapped out and back.
+    const osInstance = scrollbarRef.value?.osInstance()
+    if (osInstance)
       osInstance.elements().viewport.scrollTop = 0
-    }
+
     isFirstTimeActivatedPageChange.value = false
   },
   { immediate: true },
@@ -201,8 +240,9 @@ function handleDockItemClick(dockItem: DockItem) {
 }
 
 function changeActivatePage(pageName: AppPage) {
-  const osInstance = scrollbarRef.value?.osInstance()
-  const scrollTop: number = osInstance.elements().viewport.scrollTop
+  // `osInstance()` is undefined until the scrollbar component has mounted. Landing here with no
+  // instance (returning to the home page re-creates it) used to throw on `.elements()`.
+  const scrollTop: number = scrollbarRef.value?.osInstance()?.elements().viewport.scrollTop ?? 0
 
   if (activatedPage.value === pageName) {
     if (activatedPage.value !== AppPage.Search) {
@@ -230,6 +270,9 @@ function handleOsScroll() {
   emitter.emit(OVERLAY_SCROLL_BAR_SCROLL)
 
   const osInstance = scrollbarRef.value?.osInstance()
+  if (!osInstance)
+    return
+
   const { viewport } = osInstance.elements()
   const { scrollTop, scrollHeight, clientHeight } = viewport // get scroll offset
 
@@ -420,6 +463,26 @@ provide<BewlyAppProvider>('BEWLY_APP', {
       :url="iframeDrawerURL"
       @close="showIframeDrawer = false"
     />
+
+    <!-- 播放页「更多」菜单里点「下载视频」时弹出 -->
+    <!--
+      外面这层容器不能省。Dialog 的根节点是 Teleport，而它传送的目标正是 #bewly-wrapper 本身，
+      于是占位节点和传送进来的对话框在同一个容器里紧挨着排列。对话框关闭时，DownloadDialog 的根
+      从 Dialog 组件变成注释节点，Vue 会用 getNextHostNode() 取「占位节点后面的兄弟节点」当插入
+      锚点——取到的恰是被传送进来的对话框元素，而它在上一步卸载里已经被移走，insertBefore 于是抛
+      NotFoundError（DOMException）；这之后整棵树的 DOM 记账失准，下一次渲染又报
+      「Cannot read properties of null (reading 'insertBefore')」。
+      套一层容器后，占位节点位于容器内部且是最后一个子节点，锚点退化成 null，卸载不再出错。
+      传送目标不变，所以对话框的定位和主题都不受影响。
+    -->
+    <div>
+      <DownloadDialog
+        v-if="downloadVideoTarget"
+        v-model="showDownloadVideoDialog"
+        :video="downloadVideoTarget"
+        @close="showDownloadVideoDialog = false"
+      />
+    </div>
   </div>
 </template>
 

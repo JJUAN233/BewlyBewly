@@ -7,10 +7,10 @@ import SettingsItem from '../../components/SettingsItem.vue'
 import SettingsItemGroup from '../../components/SettingsItemGroup.vue'
 
 watch(() => settings.value.individuallySetSearchPageWallpaper, (newValue) => {
-  if (newValue)
-    document.documentElement.style.backgroundImage = `url(${settings.value.searchPageWallpaper})`
-  else
-    document.documentElement.style.backgroundImage = `url(${settings.value.wallpaper})`
+  // Interpolating an unset wallpaper produces `url(undefined)`, which the browser resolves
+  // against the page and requests — a `/undefined` 404. Clear the property instead.
+  const wallpaper = newValue ? settings.value.searchPageWallpaper : settings.value.wallpaper
+  document.documentElement.style.backgroundImage = wallpaper ? `url(${wallpaper})` : ''
 })
 
 function changeSearchBarFocusCharacter(url: string) {

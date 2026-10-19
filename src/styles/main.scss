@@ -61,18 +61,26 @@ html.dark.bewly-design {
 }
 
 // Adjust broken image icon
-img {
-  position: relative;
+//
+// Scoped to `.bewly-wrapper` on purpose. This stylesheet is loaded twice: once into the page (by
+// the manifest) and once into BewlyBewly's shadow root (by a `<link>`). A root-relative URL only
+// resolves inside the shadow root — in the page it points at the site itself and 404s. Scoping to
+// an element that only exists in the shadow root keeps the page-level copy from matching anything,
+// so it never requests the placeholder.
+.bewly-wrapper {
+  img {
+    position: relative;
 
-  &::before {
-    content: "";
-    display: block;
-    width: 100%;
-    height: 100%;
-    background-image: url("/assets/broken-image.png");
-    background-size: 25px;
-    background-position: center;
-    background-repeat: no-repeat;
+    &::before {
+      content: "";
+      display: block;
+      width: 100%;
+      height: 100%;
+      background-image: url("/assets/broken-image.png");
+      background-size: 25px;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
   }
 }
 
@@ -177,3 +185,73 @@ img {
 .dark::view-transition-new(root) {
   z-index: 1;
 }
+
+// The reveal is a CSS animation on purpose. A CSS animation lives and dies with the
+// pseudo-element it runs on, whereas one created from script outlives its transition — and since
+// every transition reuses the same `::view-transition-old/new(root)` names, a leftover script
+// animation ends up driving the *next* transition's pseudo-elements (and cancelling it while its
+// tree is still on screen throws the snapshot back to full screen). Keeping it in CSS removes
+// both failure modes.
+//
+// `toggleDark()` sets the circle's origin and reach as custom properties on the root, which the
+// pseudo-elements inherit. The `clip-path` declarations next to each animation are the state
+// before the animation's first frame is applied; `both` holds the last frame for as long as the
+// pseudo-element exists, so a hidden snapshot can never pop back before the tree is taken down.
+//
+// Switching to light: the (light) new snapshot expands out of the button.
+// Switching to dark: the (light) old snapshot contracts back into the button.
+@keyframes bew-color-mode-expand {
+  from {
+    clip-path: circle(0px at var(--bew-color-mode-x) var(--bew-color-mode-y));
+  }
+  to {
+    clip-path: circle(var(--bew-color-mode-radius) at var(--bew-color-mode-x) var(--bew-color-mode-y));
+  }
+}
+@keyframes bew-color-mode-contract {
+  from {
+    clip-path: circle(var(--bew-color-mode-radius) at var(--bew-color-mode-x) var(--bew-color-mode-y));
+  }
+  to {
+    clip-path: circle(0px at var(--bew-color-mode-x) var(--bew-color-mode-y));
+  }
+}
+::view-transition-new(root) {
+  clip-path: circle(0px at var(--bew-color-mode-x) var(--bew-color-mode-y));
+  animation: bew-color-mode-expand 300ms ease-in-out both !important;
+}
+.dark::view-transition-new(root) {
+  // Switching to dark the new (dark) snapshot just sits underneath the old one.
+  clip-path: none;
+  animation: none !important;
+}
+.dark::view-transition-old(root) {
+  clip-path: circle(var(--bew-color-mode-radius) at var(--bew-color-mode-x) var(--bew-color-mode-y));
+  animation: bew-color-mode-contract 300ms ease-in-out both !important;
+}
+
+// #region Toast（vue-toastification）
+// 提示框统一使用扩展的主题色，不再按状态分红/绿——状态改由图标区分。
+// 注意：toast 容器挂在 document.body 上（不在 #bewly 的 shadow DOM 里），
+// 所以这些规则必须写在页面级样式表里才生效。
+.Vue-Toastification__toast {
+  background-color: var(--bew-theme-color) !important;
+  color: white !important;
+}
+
+// 默认图标是内联 SVG，强制跟随文字颜色，保证在主题色底上看得清
+.Vue-Toastification__toast svg {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+}
+
+.Vue-Toastification__close-button svg {
+  fill: currentColor !important;
+}
+
+// 自动关闭的倒计时条，同样改成白色
+.Vue-Toastification__progress-bar {
+  background: rgb(255 255 255 / 65%) !important;
+}
+// #endregion

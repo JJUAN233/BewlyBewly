@@ -154,7 +154,9 @@ function getHistoryList(type: Business, view_at = 0 as number) {
     view_at,
   })
     .then((res: HistoryResult) => {
-      if (res.code === 0) {
+      // Bilibili answers some requests with `code: 0` and a null payload; reading `.list` off it
+      // throws. Check the payload is there first.
+      if (res.code === 0 && res.data) {
         if (Array.isArray(res.data.list) && res.data.list.length > 0)
           historys.push(...res.data.list)
 

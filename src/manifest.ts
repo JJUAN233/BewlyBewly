@@ -46,6 +46,9 @@ export async function getManifest() {
     host_permissions: [
       '*://*.bilibili.com/*',
       '*://*.hdslb.com/*',
+      // 视频流所在域，下载功能要在页面里 fetch 直链
+      '*://*.bilivideo.com/*',
+      '*://*.bilivideo.cn/*',
     ],
     content_scripts: [
       {
