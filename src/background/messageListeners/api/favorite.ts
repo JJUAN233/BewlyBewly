@@ -29,6 +29,8 @@ const API_FAVORITE = {
       tid: 0,
       platform: 'web',
     },
+    // 和首页推荐接口一样，风控也要求这个接口带 wts/w_rid，否则回 412 HTML 页面
+    wbi: true,
     afterHandle: AHS.J_D,
   },
   // https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/fav/action.md#%E6%89%B9%E9%87%8F%E5%88%A0%E9%99%A4%E5%86%85%E5%AE%B9
@@ -40,6 +42,66 @@ const API_FAVORITE = {
     params: {
       resources: '',
       media_id: 0,
+      csrf: '',
+    },
+    afterHandle: AHS.J_D,
+  },
+  // 收藏夹的增改删都走表单 body 而不是 query：简介允许清空（空字符串），
+  // 而 query 构建会丢弃空值参数。参数名以 B 站实际接口为准（备份文档
+  // BACNext/bilibili-API-collect-backup docs/fav/action.md）：
+  // 新建的标题字段是 title 不是 name；编辑用 media_id 不是 fid；
+  // 删除用 media_ids（逗号分隔的列表）不是 fid——参数名错了接口会回 -400 请求错误
+  addFavoriteFolder: {
+    url: 'https://api.bilibili.com/x/v3/fav/folder/add',
+    _fetch: {
+      method: 'post',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: {
+        title: '',
+        intro: '',
+        privacy: 0,
+        csrf: '',
+      },
+    },
+    afterHandle: AHS.J_D,
+  },
+  patchFavoriteFolder: {
+    url: 'https://api.bilibili.com/x/v3/fav/folder/edit',
+    _fetch: {
+      method: 'post',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: {
+        media_id: 0,
+        title: '',
+        intro: '',
+        privacy: 0,
+        csrf: '',
+      },
+    },
+    afterHandle: AHS.J_D,
+  },
+  delFavoriteFolder: {
+    url: 'https://api.bilibili.com/x/v3/fav/folder/del',
+    _fetch: {
+      method: 'post',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: {
+        media_ids: '',
+        csrf: '',
+      },
+    },
+    afterHandle: AHS.J_D,
+  },
+  // 收藏夹拖拽排序。参数形状从 B 站空间页自己的主包里抠出来的
+  // （fresh-space assets/index-*.js：POST /x/v3/fav/folder/sort，sort=完整新顺序逗号拼接，
+  // 放 query 不放 body），已用「发送当前顺序」做过无副作用验证（code 0、顺序不变）
+  sortFavoriteFolders: {
+    url: 'https://api.bilibili.com/x/v3/fav/folder/sort',
+    _fetch: {
+      method: 'post',
+    },
+    params: {
+      sort: '',
       csrf: '',
     },
     afterHandle: AHS.J_D,

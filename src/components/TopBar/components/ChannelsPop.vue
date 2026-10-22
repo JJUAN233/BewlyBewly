@@ -50,7 +50,7 @@ const otherLinks = computed(() => [
 
 <template>
   <OverlayScrollbarsComponent
-    element="div" defer
+    element="div"
     :options="{
       x: 'hidden',
       y: 'scroll',

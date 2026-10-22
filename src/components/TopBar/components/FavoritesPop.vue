@@ -78,7 +78,8 @@ async function getFavoriteCategories() {
   })
     .then((res) => {
       if (res.code === 0 && res.data) {
-        Object.assign(favoriteCategories, res.data.list)
+        // 同 Favorites.vue：assign 按下标覆写不会截断数组，删过收藏夹后这里会留下陈旧项
+        favoriteCategories.splice(0, favoriteCategories.length, ...res.data.list)
         noMoreContent.value = false
       }
       isLoading.value = false

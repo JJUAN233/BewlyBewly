@@ -208,9 +208,11 @@ function toggleTabContentLoading(loading: boolean) {
           shadow="[var(--bew-shadow-1),var(--bew-shadow-edge-glow-1)]"
           box-border border="1 $bew-border-color"
         >
+          <!-- 特例：首页标签条自己是一个横向滚动容器（x 滚动、y 隐藏），和主页面的纵向
+               滚动条各管各的；初始化时机与其他滚动条保持一致（同步挂载，不 defer） -->
           <OverlayScrollbarsComponent
             class="home-tabs-inside"
-            element="div" defer
+            element="div"
             :options="{
               x: 'scroll',
               y: 'hidden',

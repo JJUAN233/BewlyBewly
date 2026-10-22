@@ -482,19 +482,42 @@ function handleMouseEnter(item: HistoryItem) {
       <!-- 吸附位置取面板静止时的位置：页面顶部内边距 + 自己的 my-10（2.5em）。写死 120px 比静止位置
            低 9px，主内容列一旦高过面板就会让面板下滑 9px 再弹回，见 Favorites.vue 同处注释。 -->
       <div pos="sticky top-[calc(var(--bew-top-bar-height)+10px+2.5em)]" flex="~ col gap-4" justify-start my-10 w-full>
-        <input
-          v-model.lazy.trim="keyword"
-          type="text"
-          :placeholder="t('history.search_watch_history')"
-          p="x-14px"
-          lh-35px h-35px
-          rounded="$bew-radius"
-          bg="$bew-content-solid"
-          shadow="$bew-shadow-1"
-          outline-none
-          w-full
-          @keyup.enter="handleSearch"
-        >
+        <!-- 搜索框与全站统一：静止胶囊形，聚焦时过渡成圆角矩形并亮主题色光环，右端放大镜
+             与 SearchBar 同款（悬停/聚焦转主题色 + 光晕）。胶囊+边框+按钮的组合也让它
+             和下方两个圆角矩形操作按钮一眼可分 -->
+        <div class="group" pos="relative" w-full>
+          <input
+            v-model.lazy.trim="keyword"
+            class="search-input"
+            type="text"
+            :placeholder="t('history.search_watch_history')"
+            p="l-14px r-42px"
+            lh-35px h-35px
+            rounded="60px focus:$bew-radius"
+            transition="all duration-300"
+            un-border="1 solid $bew-border-color focus:$bew-theme-color"
+            bg="$bew-content-solid"
+            shadow="$bew-shadow-1"
+            outline-none
+            w-full
+            @keyup.enter="handleSearch"
+          >
+          <button
+            class="absolute top-1/2 right-6px -translate-y-1/2"
+            p-2
+            rounded-full
+            text="lg leading-0 $bew-text-1 group-hover:$bew-theme-color group-focus-within:$bew-theme-color"
+            bg="hover:$bew-fill-2"
+            transition="all duration-300"
+            border-none
+            outline-none
+            filter="group-focus-within:~"
+            style="--un-drop-shadow: drop-shadow(0 0 6px var(--bew-theme-color))"
+            @click="handleSearch"
+          >
+            <div i-tabler:search block align-middle />
+          </button>
+        </div>
         <Button
           block
           style="
@@ -561,4 +584,12 @@ function handleMouseEnter(item: HistoryItem) {
 </template>
 
 <style lang="scss" scoped>
+// 聚焦光环与顶栏 SearchBar 一致（模板上的 transition/border/圆角变化负责形态，
+// 这里只补 SearchBar 放在 SCSS 里的那套 box-shadow 光环）
+.search-input:focus {
+  box-shadow:
+    0 0 0 2px var(--bew-theme-color),
+    0 6px 16px var(--bew-theme-color-40),
+    inset 0 0 6px var(--bew-theme-color-30);
+}
 </style>

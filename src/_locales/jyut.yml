@@ -495,6 +495,20 @@ favorites:
   unfavorite_confirm: |-
     係咪要剷走你揀過啲片呀？
     噉做冇得返轉頭噃，你確定要剷走你揀過啲片？
+  create_folder: 開個新收藏夾
+  edit_folder: 改下個收藏夾
+  delete_folder: 刪咗個收藏夾
+  delete_folder_confirm: |-
+    係咪要刪咗呢個收藏夾呀？
+    入面啲片唔會被取消收藏，不過噉做冇得返轉頭，你確定？
+  folder_name: 個名
+  folder_intro: 簡介
+  folder_privacy: 公唔公開
+  privacy_public: 公開
+  privacy_private: 私密
+  sort_mtime: 最近收
+  sort_pubtime: 最近投稿
+  sort_view: 最多人睇
 
 watch_later:
   title: 陣間至睇

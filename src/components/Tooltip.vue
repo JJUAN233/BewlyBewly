@@ -1,79 +1,112 @@
 <script lang="ts" setup>
-defineProps<{
+import { useBewlyApp } from '~/composables/useAppProvider'
+
+const props = defineProps<{
   content: string
   placement: 'left' | 'right' | 'top' | 'bottom' | 'bottom-left' | 'bottom-right'
   type?: 'default' | 'dark' | 'white'
 }>()
 
-const tooltipPos = ref({ left: 0, top: 0 })
-const tooltipRef = ref(null)
+// Teleport 到应用根：原来提示是内联渲染在触发元素旁边的，一旦触发元素在
+// overflow 不可见的容器里（如收藏夹列表），提示就会被容器边缘裁掉。
+// 锚点元素保留在原位占坑，提示本体固定定位到 #bewly-wrapper 的顶层。
+const { mainAppRef } = useBewlyApp()
+const anchorRef = ref<HTMLElement | null>(null)
+const visible = ref(false)
+const tipStyle = ref<Record<string, string>>({})
+
+function show() {
+  const el = anchorRef.value
+  if (!el)
+    return
+
+  const rect = el.getBoundingClientRect()
+  const gap = 10
+  const style: Record<string, string> = { position: 'fixed' }
+
+  switch (props.placement) {
+    case 'top':
+      style.left = `${rect.left + rect.width / 2}px`
+      style.top = `${rect.top - gap}px`
+      style.transform = 'translate(-50%, -100%)'
+      break
+    case 'left':
+      style.left = `${rect.left - gap}px`
+      style.top = `${rect.top + rect.height / 2}px`
+      style.transform = 'translate(-100%, -50%)'
+      break
+    case 'right':
+      style.left = `${rect.right + gap}px`
+      style.top = `${rect.top + rect.height / 2}px`
+      style.transform = 'translate(0, -50%)'
+      break
+    case 'bottom-left':
+      style.left = `${rect.left}px`
+      style.top = `${rect.bottom + gap}px`
+      break
+    case 'bottom-right':
+      style.left = `${rect.right}px`
+      style.top = `${rect.bottom + gap}px`
+      style.transform = 'translate(-100%, 0)'
+      break
+    // bottom
+    default:
+      style.left = `${rect.left + rect.width / 2}px`
+      style.top = `${rect.bottom + gap}px`
+      style.transform = 'translate(-50%, 0)'
+      break
+  }
+
+  tipStyle.value = style
+  visible.value = true
+}
+
+function hide() {
+  visible.value = false
+}
 </script>
 
 <template>
   <span
+    ref="anchorRef"
     class="b-tooltip-wrapper"
-    :style="{
-      top: `${tooltipPos.top}px`,
-      left: `${tooltipPos.left}px`,
-    }"
+    @mouseenter="show"
+    @mouseleave="hide"
   >
-    <div
-      ref="tooltipRef"
-      class="b-tooltip"
-      :class="[`b-tooltip--placement-${placement ?? 'top'}`, `b-tooltip--type-${type ?? 'default'}`]"
-    >
-      {{ content }}
-    </div>
     <slot />
   </span>
+  <Teleport v-if="mainAppRef" :to="mainAppRef">
+    <Transition name="fade">
+      <div
+        v-if="visible"
+        class="b-tooltip"
+        :class="[`b-tooltip--type-${type ?? 'default'}`]"
+        :style="tipStyle"
+      >
+        {{ content }}
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <style lang="scss" scoped>
 .b-tooltip-wrapper {
   --uno: "flex items-center relative";
+}
 
-  .b-tooltip {
-    --uno: "absolute px-2 lh-2em rounded-8 pointer-events-none text-sm opacity-0 duration-300 shadow-$bew-shadow-2 whitespace-nowrap";
+.b-tooltip {
+  --uno: "fixed px-2 lh-2em rounded-8 pointer-events-none text-sm shadow-$bew-shadow-2 whitespace-nowrap z-10003";
+}
 
-    &--placement-right {
-      --uno: "left-[calc(100%+0.5em)]";
-    }
+.b-tooltip--type-default {
+  --uno: "text-white dark:text-black bg-black dark:bg-white";
+}
 
-    &--placement-left {
-      --uno: "right-[calc(100%+0.5em)]";
-    }
+.b-tooltip--type-dark {
+  --uno: "text-white bg-black";
+}
 
-    &--placement-top {
-      --uno: "top--2.5em left-1/2 translate-x--1/2";
-    }
-
-    &--placement-bottom {
-      --uno: "bottom--2.5em left-1/2 translate-x--1/2";
-    }
-
-    &--placement-bottom-left {
-      --uno: "bottom--2.5em left--2";
-    }
-
-    &--placement-bottom-right {
-      --uno: "bottom--2.5em right--2";
-    }
-
-    &--type-default {
-      --uno: "text-white dark:text-black bg-black dark:bg-white";
-    }
-
-    &--type-dark {
-      --uno: "text-white bg-black";
-    }
-
-    &--type-white {
-      --uno: "text-black bg-white";
-    }
-  }
-
-  &:hover .b-tooltip {
-    --uno: "opacity-100";
-  }
+.b-tooltip--type-white {
+  --uno: "text-black bg-white";
 }
 </style>

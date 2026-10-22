@@ -496,6 +496,20 @@ favorites:
   unfavorite_confirm: |-
     要取消收藏选中的视频吗？
     该操作无法撤销，你确定要取消收藏选中的视频吗？
+  create_folder: 新建收藏夹
+  edit_folder: 编辑收藏夹
+  delete_folder: 删除收藏夹
+  delete_folder_confirm: |-
+    要删除这个收藏夹吗？
+    收藏夹内的视频不会被取消收藏，但该操作无法撤销，你确定要删除吗？
+  folder_name: 名称
+  folder_intro: 简介
+  folder_privacy: 公开性
+  privacy_public: 公开
+  privacy_private: 私密
+  sort_mtime: 最近收藏
+  sort_pubtime: 最近投稿
+  sort_view: 最多播放
 
 watch_later:
   title: 稍后再看

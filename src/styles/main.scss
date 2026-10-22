@@ -153,6 +153,13 @@ html.dark.bewly-design {
   --uno: "z-100000";
 }
 
+// Bewly 应用占满视口时（首页/历史页等自有页面），滚动全在应用内部的 OverlayScrollbars 里，
+// 文档本身必须不可滚——否则 html 的原生滚动条会和应用内的覆盖式滚动条并排出现两条竖条。
+// App.vue 在 showBewlyPage || iframePageURL 时挂这个类；切回 B 站原始页面时不挂，原生滚动照常
+html.bewly-app-fullscreen {
+  overflow: hidden !important;
+}
+
 // Change OverlayScrollbar color
 .os-scrollbar .os-scrollbar-handle {
   --os-handle-bg: rgba(120, 120, 140, 0.44);

@@ -2,6 +2,8 @@
 const props = defineProps<{
   options: OptionType[]
   modelValue: any
+  /** 选项面板向上展开。放在对话框底部之类的矮容器里时用它，不然面板会被容器裁掉 */
+  dropUp?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue', 'change'])
@@ -88,8 +90,8 @@ function onMouseEnter() {
         v-if="showOptions"
         style="backdrop-filter: var(--bew-filter-glass-1)"
         pos="absolute" bg="$bew-elevated" shadow="$bew-shadow-2" p="2"
-        m="t-2"
-        rounded="$bew-radius" z="1" flex="~ col gap-1"
+        :class="dropUp ? 'bottom-full mb-2' : 'top-full mt-2'"
+        rounded="$bew-radius" z="10" flex="~ col gap-1"
         w="full" max-h-300px overflow-y-overlay will-change-transform transform-gpu
       >
         <div

@@ -126,8 +126,16 @@ async function doRequest(message: Message, api: API, sendResponse?: Function, co
 
     // Endpoints guarded by Bilibili's risk control need the `wts`/`w_rid` pair, otherwise they
     // answer 412 with an HTML page instead of JSON.
-    if (api.wbi)
+    if (api.wbi) {
+      // 签名集合必须和实际发出的 query 逐项一致——B 站会用收到的参数重算 w_rid。
+      // 下面拼 URL 时会丢掉空值参数（keyword:''、type:0 这类默认值），
+      // 所以这里要先按同样的规则筛一遍再签名，否则签出来的 w_rid 永远对不上。
+      Object.keys(targetParams).forEach((key) => {
+        if (!targetParams[key])
+          delete targetParams[key]
+      })
       Object.assign(targetParams, await signWbiParams(targetParams))
+    }
 
     // generate params
     if (Object.keys(targetParams).length) {

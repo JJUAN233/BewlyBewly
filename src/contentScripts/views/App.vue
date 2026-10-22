@@ -115,6 +115,17 @@ const showBewlyPage = computed((): boolean => {
 
   return isHomePage() && !settings.value.useOriginalBilibiliHomepage
 })
+
+// 应用占满视口时（条件与下方 app 容器的 100dvh 一致），滚动完全由应用内部的
+// OverlayScrollbars 负责，文档本身不许滚。否则 #bewly 里的静态内容加上（非首页
+// URL 时）B 站原页面 DOM 会让 html 溢出，原生滚动条和应用里的覆盖式滚动条并排，
+// 首页/历史页就出现两条竖向滑动条。切到 B 站原始页面时不加这个类，原生滚动照常。
+watchEffect(() => {
+  document.documentElement.classList.toggle(
+    'bewly-app-fullscreen',
+    showBewlyPage.value || !!iframePageURL.value,
+  )
+})
 /**
  * 自己是不是「页面切换器」用来装 B 站页面的那个 iframe 里的那份 app。
  * 是的话顶栏由外层页面画（见 `~/constants/iframe.ts`），这份不画——否则切过去时外层顶栏会先卸载、
@@ -438,7 +449,7 @@ provide<BewlyAppProvider>('BEWLY_APP', {
     >
       <Transition name="fade">
         <template v-if="showBewlyPage">
-          <OverlayScrollbarsComponent ref="scrollbarRef" element="div" h-inherit defer @os-scroll="handleOsScroll">
+          <OverlayScrollbarsComponent ref="scrollbarRef" element="div" h-inherit @os-scroll="handleOsScroll">
             <main m-auto max-w="$bew-page-max-width">
               <div
                 p="t-[calc(var(--bew-top-bar-height)+10px)]" m-auto

@@ -501,6 +501,20 @@ favorites:
   unfavorite_confirm: |-
     Remove selected video(s)?
     This operation cannot be reversed. Are you sure you want to remove the selected video(s) from your favorites?
+  create_folder: New Folder
+  edit_folder: Edit Folder
+  delete_folder: Delete Folder
+  delete_folder_confirm: |-
+    Delete this folder?
+    Videos inside won't be unfavorited, but this action cannot be undone. Are you sure?
+  folder_name: Name
+  folder_intro: Description
+  folder_privacy: Visibility
+  privacy_public: Public
+  privacy_private: Private
+  sort_mtime: Recently Added
+  sort_pubtime: Recently Posted
+  sort_view: Most Played
 
 watch_later:
   title: Watch Later

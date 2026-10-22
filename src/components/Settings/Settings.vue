@@ -235,7 +235,7 @@ function setCurrentTitle() {
             mask-image: linear-gradient(to bottom, transparent 0%, black 80px 30%);
             -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 80px 30%);
           "
-          element="div" defer
+          element="div"
           h-inherit
         >
           <main

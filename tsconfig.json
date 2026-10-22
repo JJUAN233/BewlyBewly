@@ -4,11 +4,13 @@
     "target": "es2016",
     "jsx": "preserve",
     "lib": ["DOM", "ESNext"],
-    "baseUrl": ".",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "paths": {
-      "~/*": ["src/*"]
+      "~/*": ["./src/*"],
+      // vite 的 exports 里 "./types/*" 指向的是不带扩展名的路径，bundler 模式下解析不到；
+      // scripts/client.ts（从 vite 客户端抄来的 HMR 客户端）要直接 import 这两个类型文件
+      "vite/types/*": ["./node_modules/vite/types/*"]
     },
     "resolveJsonModule": true,
     "types": [
