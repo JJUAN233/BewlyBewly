@@ -138,6 +138,71 @@ if (isSupportedPages() || isSupportedIframePages()) {
   }
 }
 
+// B 站对历史记录这类敏感接口会 412 掉扩展源头的请求——连内容脚本（隔离世界）发的也拦，
+// 只有页面主世界原生发出的才行（实测同一条 URL 页面里重放 code 0）。所以把
+// mainWorldBridge.js 以 <script src> 注入主世界，由它以完全的页面身份发 fetch，
+// 结果用 CustomEvent 传回来。B 站 CSP 禁内联但放行 chrome-extension:// 脚本，所以桥
+// 必须是独立文件（web_accessible_resources 里声明了）。拿不到桥时退回隔离世界直发。
+;(() => {
+  const script = document.createElement('script')
+  script.src = browser.runtime.getURL('dist/mainWorldBridge.js')
+  script.async = false
+  script.onload = () => script.remove()
+  document.documentElement.appendChild(script)
+})()
+
+const pendingMainWorldFetches = new Map<number, (result: { status: number, body: string }) => void>()
+let mainWorldFetchId = 0
+
+window.addEventListener('bewly-api-fetch-reply', ((e: CustomEvent<{ id?: number, status?: number, body?: string }>) => {
+  const detail = e.detail
+  if (!detail || typeof detail.id !== 'number')
+    return
+  const cb = pendingMainWorldFetches.get(detail.id)
+  if (cb) {
+    pendingMainWorldFetches.delete(detail.id)
+    cb({ status: detail.status ?? 599, body: detail.body ?? '' })
+  }
+}) as EventListener)
+
+function fetchThroughMainWorld(payload: { url: string, method?: string, headers?: Record<string, string>, body?: string }): Promise<{ status: number, body: string }> {
+  return new Promise((resolve) => {
+    const id = ++mainWorldFetchId
+    const timer = setTimeout(() => {
+      if (!pendingMainWorldFetches.has(id))
+        return
+      pendingMainWorldFetches.delete(id)
+      fetch(payload.url, {
+        method: payload.method,
+        headers: payload.headers,
+        body: payload.body,
+        credentials: 'include',
+      }).then(async res => resolve({ status: res.status, body: await res.text() }))
+        .catch(() => resolve({ status: 599, body: '' }))
+    }, 4000)
+    pendingMainWorldFetches.set(id, (result) => {
+      clearTimeout(timer)
+      resolve(result)
+    })
+    window.dispatchEvent(new CustomEvent('bewly-api-fetch-request', {
+      detail: { id, url: payload.url, method: payload.method, headers: payload.headers, body: payload.body },
+    }))
+  })
+}
+
+// 背景页把标记了 viaPageContext 的接口转到这里，经主世界桥以页面身份发出（见 background/utils.ts）
+browser.runtime.onMessage.addListener(async (message: { type?: string, url?: string, method?: string, headers?: Record<string, string>, body?: string }) => {
+  if (message?.type !== 'BEWLY_API_FETCH' || !message.url)
+    return
+
+  return fetchThroughMainWorld({
+    url: message.url,
+    method: message.method,
+    headers: message.headers,
+    body: message.body,
+  })
+})
+
 if (settings.value.adaptToOtherPageStyles && isHomePage()) {
   beforeLoadedStyleEl = injectCSS(`
     html.bewly-design {

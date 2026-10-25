@@ -32,9 +32,9 @@ const tabPageRef = ref()
 const topBarVisibility = ref<boolean>(false)
 const gridLayoutIcons = computed((): GridLayoutIcon[] => {
   return [
-    { icon: 'i-mingcute:table-3-line', iconActivated: 'i-mingcute:table-3-fill', value: 'adaptive' },
-    { icon: 'i-mingcute:layout-grid-line', iconActivated: 'i-mingcute:layout-grid-fill', value: 'twoColumns' },
-    { icon: 'i-mingcute:list-check-3-line', iconActivated: 'i-mingcute:list-check-3-fill', value: 'oneColumn' },
+    { icon: 'i-mingcute:table-3-line', iconActivated: 'i-mingcute:table-3-fill', value: 'adaptive', labelKey: 'home.layout_adaptive' },
+    { icon: 'i-mingcute:layout-grid-line', iconActivated: 'i-mingcute:layout-grid-fill', value: 'twoColumns', labelKey: 'home.layout_two_columns' },
+    { icon: 'i-mingcute:list-check-3-line', iconActivated: 'i-mingcute:list-check-3-fill', value: 'oneColumn', labelKey: 'home.layout_one_column' },
   ]
 })
 
@@ -250,17 +250,24 @@ function toggleTabContentLoading(loading: boolean) {
           shadow="[var(--bew-shadow-1),var(--bew-shadow-edge-glow-1)]"
           box-border border="1 $bew-border-color"
         >
-          <div
+          <!-- 悬浮提示：Tooltip 的锚点 span 会成为药丸容器的 flex 子项，
+               stretch + 内层 h-full 的效果和改动前的直挂 div 一致 -->
+          <Tooltip
             v-for="icon in gridLayoutIcons" :key="icon.value"
-            :class="{ 'grid-layout-item-activated': gridLayout.home === icon.value }"
-            flex="~ justify-center items-center"
-            h-full aspect-square text="$bew-text-2 hover:$bew-text-1"
-            rounded-full bg="hover:$bew-fill-2" duration-300
-            cursor-pointer
-            @click="gridLayout.home = icon.value"
+            :content="$t(icon.labelKey)"
+            placement="bottom"
           >
-            <div :class="gridLayout.home === icon.value ? icon.iconActivated : icon.icon" text-base />
-          </div>
+            <div
+              :class="{ 'grid-layout-item-activated': gridLayout.home === icon.value }"
+              flex="~ justify-center items-center"
+              h-full aspect-square text="$bew-text-2 hover:$bew-text-1"
+              rounded-full bg="hover:$bew-fill-2" duration-300
+              cursor-pointer
+              @click="gridLayout.home = icon.value"
+            >
+              <div :class="gridLayout.home === icon.value ? icon.iconActivated : icon.icon" text-base />
+            </div>
+          </Tooltip>
         </div>
       </header>
 

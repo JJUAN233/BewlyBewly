@@ -154,13 +154,14 @@ function getHistoryList(type: Business, view_at = 0 as number) {
     view_at,
   })
     .then((res: HistoryResult) => {
-      // Bilibili answers some requests with `code: 0` and a null payload; reading `.list` off it
-      // throws. Check the payload is there first.
+      // Bilibili answers some requests with `code: 0` and a null payload (list 也可能为 null)；
+      // 先收成数组再用
       if (res.code === 0 && res.data) {
-        if (Array.isArray(res.data.list) && res.data.list.length > 0)
-          historys.push(...res.data.list)
+        const list = Array.isArray(res.data.list) ? res.data.list : []
+        if (list.length > 0)
+          historys.push(...list)
 
-        if (res.data.list.length < 20) {
+        if (list.length < 20) {
           noMoreContent.value = true
         }
       }

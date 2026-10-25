@@ -2,7 +2,7 @@
 type Size = 'small' | 'medium' | 'large'
 interface Props {
   size?: Size
-  type?: 'text' | 'password' | 'email' | 'number'
+  type?: 'text' | 'password' | 'email' | 'number' | 'date'
   min?: number
   max?: number
   placeholder?: string

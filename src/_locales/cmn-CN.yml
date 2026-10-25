@@ -449,6 +449,9 @@ home:
   ranking: 排行
   subscribed_series: 订阅剧集
   live: 直播
+  layout_adaptive: 自适应
+  layout_two_columns: 双列
+  layout_one_column: 单列
 
 ranking:
   all: 全部
@@ -485,6 +488,46 @@ history:
     要暂停记录观看历史吗？
     你确定要要暂停记录观看历史吗？
   search_watch_history: 搜索观看历史
+  tab_all: 综合
+  tab_video: 视频
+  tab_live: 直播
+  tab_article: 专栏
+  more_filter: 更多筛选
+  filter_duration: 时长
+  filter_time: 时间
+  filter_device: 设备
+  duration_all: 全部时长
+  duration_max10: 10分钟以下
+  duration_10_30: 10-30分钟
+  duration_30_60: 30-60分钟
+  duration_min60: 60分钟以上
+  time_all: 全部时间
+  time_today: 今天
+  time_yesterday: 昨天
+  time_week: 近一周
+  time_start_date: 开始日期
+  time_end_date: 结束日期
+  time_range_to: 至
+  date_year_unit: '{year}年'
+  date_month_unit: '{month}月'
+  device_all: 全部设备
+  device_pc: PC
+  device_mobile: 手机
+  device_pad: 平板
+  device_tv: TV
+  batch_manage: 批量管理
+  exit_manage: 退出管理
+  select_all: 全选
+  selected_count: '已经选择 {count} 条历史记录'
+  selected_all: 已经选择所有历史记录
+  selected_all_type: '已经选择所有{tab}记录'
+  selected_all_loaded: 已经选择所有已加载的历史记录
+  selected_all_loaded_type: '已经选择所有已加载的{tab}记录'
+  confirm_delete_selected: 确认要删除选中的历史记录？
+  confirm_delete_selected_type: '确认要删除选中的{tab}记录？'
+  confirm_delete_all: 确认要删除所有历史记录？
+  confirm_delete_all_type: '确认要删除所有{tab}记录？'
+  delete_unrecoverable: 记录删除后将不可恢复
   title: 观看历史
   turn_on_watch_history: 开启观看历史
   turn_on_watch_history_confirm: |-

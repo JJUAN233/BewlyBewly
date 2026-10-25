@@ -454,6 +454,9 @@ home:
   ranking: Ranking
   subscribed_series: Subscribed Series
   live: Live
+  layout_adaptive: Adaptive
+  layout_two_columns: Two Columns
+  layout_one_column: One Column
 
 ranking:
   all: All
@@ -483,6 +486,46 @@ anime:
 history:
   title: Watch History
   search_watch_history: Search watch history
+  tab_all: All
+  tab_video: Videos
+  tab_live: Live
+  tab_article: Articles
+  more_filter: More Filters
+  filter_duration: Duration
+  filter_time: Time
+  filter_device: Device
+  duration_all: Any Duration
+  duration_max10: Under 10 min
+  duration_10_30: 10-30 min
+  duration_30_60: 30-60 min
+  duration_min60: Over 60 min
+  time_all: Any Time
+  time_today: Today
+  time_yesterday: Yesterday
+  time_week: Last Week
+  time_start_date: Start date
+  time_end_date: End date
+  time_range_to: to
+  date_year_unit: '{year}'
+  date_month_unit: '{month}'
+  device_all: Any Device
+  device_pc: PC
+  device_mobile: Mobile
+  device_pad: Tablet
+  device_tv: TV
+  batch_manage: Batch Management
+  exit_manage: Exit Management
+  select_all: Select All
+  selected_count: '{count} history records selected'
+  selected_all: All history records selected
+  selected_all_type: 'All {tab} history records selected'
+  selected_all_loaded: All loaded history records selected
+  selected_all_loaded_type: 'All loaded {tab} history records selected'
+  confirm_delete_selected: Delete the selected history records?
+  confirm_delete_selected_type: 'Delete the selected {tab} history records?'
+  confirm_delete_all: Delete all history records?
+  confirm_delete_all_type: 'Delete all {tab} history records?'
+  delete_unrecoverable: This cannot be undone after deletion.
   clear_all_watch_history: Clear all watch history
   clear_all_watch_history_confirm: |-
     Clear all watch history?

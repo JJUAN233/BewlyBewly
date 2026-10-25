@@ -75,6 +75,12 @@ interface API {
    * `wts`/`w_rid` pair. See `wbi.ts`.
    */
   wbi?: boolean
+  /**
+   * 转到内容脚本、以页面身份（页面的 Origin/Referer/UA/cookie）发出。B 站对历史记录这类
+   * 敏感接口会 412 掉来自 chrome-extension 源头的请求——签名有效也没用（实测同一条签名
+   * URL 在页面里重放 code 0，从背景页发就是 412 HTML）。
+   */
+  viaPageContext?: boolean
   afterHandle: ((response: Response) => Response | Promise<Response>)[]
 }
 // 重载API 可以为函数
@@ -98,14 +104,14 @@ function apiListenerFactory(API_MAP: APIMAP) {
     // eslint-disable-next-line node/prefer-global/process
     if (process.env.FIREFOX && sender && sender.tab && sender.tab.cookieStoreId) {
       const cookies = await browser.cookies.getAll({ storeId: sender.tab.cookieStoreId })
-      return doRequest(message, api, sendResponse, cookies)
+      return doRequest(message, api, sendResponse, cookies, sender)
     }
 
-    return doRequest(message, api, sendResponse)
+    return doRequest(message, api, sendResponse, undefined, sender)
   }
 }
 
-async function doRequest(message: Message, api: API, sendResponse?: Function, cookies?: Browser.Cookies.Cookie[]) {
+async function doRequest(message: Message, api: API, sendResponse?: Function, cookies?: Browser.Cookies.Cookie[], sender?: Browser.Runtime.MessageSender) {
   try {
     let { contentScriptQuery, ...rest } = message
     // rest above two part body or params
@@ -158,10 +164,27 @@ async function doRequest(message: Message, api: API, sendResponse?: Function, co
     // get cant take body
     const fetchOpt = { method, headers }
     !isGET && Object.assign(fetchOpt, { body: targetBody })
-    // fetch and after handle
-    let baseFunc = fetch(url, {
-      ...fetchOpt,
-    })
+
+    // viaPageContext：把请求转给发起方所在 tab 的内容脚本，以页面身份发出（见接口声明处注释）。
+    // 定向到 sender.frameId，避免 tab 里每个 frame 都去 fetch 一遍；转发失败退回背景页直发
+    const fetchOptBody = isGET
+      ? undefined
+      : targetBody instanceof URLSearchParams ? targetBody.toString() : targetBody
+    let baseFunc: Promise<any> = api.viaPageContext && sender?.tab?.id != null
+      ? browser.tabs.sendMessage(
+        sender.tab.id,
+        {
+          type: 'BEWLY_API_FETCH',
+          url,
+          method,
+          headers,
+          body: fetchOptBody,
+        },
+        sender.frameId != null ? { frameId: sender.frameId } : undefined,
+      ).then((reply: { status: number, body: string } | undefined) => {
+        return new Response(reply?.body ?? '', { status: reply?.status ?? 502 })
+      }).catch(() => fetch(url, { ...fetchOpt }))
+      : fetch(url, { ...fetchOpt })
     afterHandle.forEach((func) => {
       if (func.name === sendResponseHandler.name && sendResponse)
         // sendResponseHandler 是一个特殊的后处理函数，需要传入sendResponse

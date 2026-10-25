@@ -15,6 +15,7 @@ interface Props {
   round?: boolean
   block?: boolean
   center?: boolean
+  disabled?: boolean
 }
 
 defineProps<Props>()
@@ -29,6 +30,7 @@ function handleClick(evt: MouseEvent) {
 <template>
   <button
     class="b-button"
+    :disabled="disabled"
     :class="[
       `b-button--type-${type ?? 'default'}`,
       `b-button--size-${size ?? 'medium'}`,
@@ -125,6 +127,13 @@ function handleClick(evt: MouseEvent) {
 
   &--strong {
     --uno: "fw-800";
+  }
+
+  // 原生 disabled 已经不发 click；pointer-events 再关掉 hover 态
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 }
 </style>

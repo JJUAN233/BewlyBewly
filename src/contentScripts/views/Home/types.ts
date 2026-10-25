@@ -21,4 +21,6 @@ export interface GridLayoutIcon {
   icon: string
   iconActivated: string
   value: GridLayoutType
+  /** 悬浮提示文案的 i18n key */
+  labelKey: string
 }

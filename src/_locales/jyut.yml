@@ -448,6 +448,9 @@ home:
   ranking: 排行
   subscribed_series: 訂閱劇集
   live: 直播
+  layout_adaptive: 自適應
+  layout_two_columns: 雙列
+  layout_one_column: 單列
 
 ranking:
   all: 全部
@@ -486,6 +489,46 @@ history:
     係咪要暫停進行收睇記錄呀？
     你確定要暫停暫停進行收睇記錄？
   search_watch_history: 搵吓收睇記錄
+  tab_all: 綜合
+  tab_video: 影片
+  tab_live: 直播
+  tab_article: 專欄
+  more_filter: 再多啲篩選
+  filter_duration: 時長
+  filter_time: 時間
+  filter_device: 用咩睇
+  duration_all: 咁都睇
+  duration_max10: 少過10分鐘
+  duration_10_30: 10-30分鐘
+  duration_30_60: 30-60分鐘
+  duration_min60: 多過60分鐘
+  time_all: 乜嘢時候都得
+  time_today: 今日
+  time_yesterday: 尋日
+  time_week: 今個禮拜
+  time_start_date: 開始日期
+  time_end_date: 結束日期
+  time_range_to: 至
+  date_year_unit: '{year}年'
+  date_month_unit: '{month}月'
+  device_all: 咩機都得
+  device_pc: 電腦
+  device_mobile: 手機
+  device_pad: 平板
+  device_tv: 電視
+  batch_manage: 批量管理
+  exit_manage: 退出管理
+  select_all: 全選
+  selected_count: '揀咗 {count} 條收睇記錄'
+  selected_all: 揀晒所有收睇記錄
+  selected_all_type: '揀晒所有{tab}'
+  selected_all_loaded: 揀晒所有載入咗嘅收睇記錄
+  selected_all_loaded_type: '揀晒所有載入咗嘅{tab}'
+  confirm_delete_selected: 係咪要刪除揀咗嘅收睇記錄呀？
+  confirm_delete_selected_type: '係咪要刪除揀咗嘅{tab}呀？'
+  confirm_delete_all: 係咪要刪除晒所有收睇記錄呀？
+  confirm_delete_all_type: '係咪要刪除晒所有{tab}呀？'
+  delete_unrecoverable: 刪除咗就冇得返轉頭架喇
   turn_on_watch_history_confirm: |-
     係咪要開返收睇記錄呀？
     你確定要開返收睇記錄？

@@ -450,6 +450,9 @@ home:
   ranking: 排行
   subscribed_series: 訂閱劇集
   live: 直播
+  layout_adaptive: 適應式
+  layout_two_columns: 雙列
+  layout_one_column: 單列
 
 ranking:
   all: 全部
@@ -488,6 +491,46 @@ history:
     要暫停追蹤觀看記錄嗎？
     你確定要暫停追蹤觀看記錄嗎？
   search_watch_history: 搜尋觀看記錄
+  tab_all: 綜合
+  tab_video: 影片
+  tab_live: 直播
+  tab_article: 專欄
+  more_filter: 更多篩選
+  filter_duration: 時長
+  filter_time: 時間
+  filter_device: 設備
+  duration_all: 全部時長
+  duration_max10: 10分鐘以下
+  duration_10_30: 10-30分鐘
+  duration_30_60: 30-60分鐘
+  duration_min60: 60分鐘以上
+  time_all: 全部時間
+  time_today: 今天
+  time_yesterday: 昨天
+  time_week: 近一週
+  time_start_date: 開始日期
+  time_end_date: 結束日期
+  time_range_to: 至
+  date_year_unit: '{year}年'
+  date_month_unit: '{month}月'
+  device_all: 全部設備
+  device_pc: PC
+  device_mobile: 手機
+  device_pad: 平板
+  device_tv: TV
+  batch_manage: 批量管理
+  exit_manage: 退出管理
+  select_all: 全選
+  selected_count: '已經選擇 {count} 條觀看記錄'
+  selected_all: 已經選擇所有觀看記錄
+  selected_all_type: '已經選擇所有{tab}記錄'
+  selected_all_loaded: 已經選擇所有已載入的觀看記錄
+  selected_all_loaded_type: '已經選擇所有已載入的{tab}記錄'
+  confirm_delete_selected: 確認要刪除選中的觀看記錄？
+  confirm_delete_selected_type: '確認要刪除選中的{tab}記錄？'
+  confirm_delete_all: 確認要刪除所有觀看記錄？
+  confirm_delete_all_type: '確認要刪除所有{tab}記錄？'
+  delete_unrecoverable: 記錄刪除後將不可復原
   turn_on_watch_history_confirm: |-
     要啓用觀看記錄嗎？
     你確定要啓用觀看記錄嗎？

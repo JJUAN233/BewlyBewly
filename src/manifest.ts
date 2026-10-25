@@ -97,6 +97,11 @@ export async function getManifest() {
         matches: ['<all_urls>'],
         // matches: ['./assets/*'],
       },
+      {
+        // 主世界桥：历史接口的风控只认页面原生请求，需要把这个文件以 <script src> 注入页面
+        resources: ['dist/mainWorldBridge.js'],
+        matches: ['*://*.bilibili.com/*'],
+      },
     ],
     content_security_policy: isFirefox
       ? {

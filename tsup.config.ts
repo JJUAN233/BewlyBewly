@@ -14,6 +14,8 @@ export default defineConfig(() => ({
   },
   async onSuccess() {
     fs.copySync(path.resolve(__dirname, './src/inject/index.js'), path.resolve(__dirname, `./${outDir}/inject/index.js`))
+    // 主世界桥（纯静态文件，不经打包）：注入页面时以页面身份发请求，见 contentScripts/index.ts
+    fs.copySync(path.resolve(__dirname, './src/mainWorldBridge.js'), path.resolve(__dirname, `./${outDir}/mainWorldBridge.js`))
   },
   outDir,
   format: ['esm'],

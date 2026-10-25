@@ -225,10 +225,13 @@ export type GridLayoutType = 'adaptive' | 'twoColumns' | 'oneColumn'
 
 export interface GridLayout {
   home: GridLayoutType
+  /** 历史页排列：list=纵向（单列）/ grid=自适应（宫格），刷新后保持（对齐首页行为） */
+  history: 'list' | 'grid'
 }
 
 export const gridLayout = useStorageLocal('gridLayout', ref<GridLayout>({
   home: 'adaptive',
+  history: 'list',
 }), { mergeDefaults: true })
 
 export const sidePanel = useStorageLocal('sidePanel', ref<{
