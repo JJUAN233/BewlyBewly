@@ -2,14 +2,19 @@
 
 [English](README.md) | [官话 - 简体中文](README-cmn_CN.md) | 官話 - 繁體中文 | [廣東話](README-jyut.md)
 
+> [!NOTE]
+> 這是 BewlyBewly 的個人 fork，由
+> [JJUAN233](https://github.com/JJUAN233) 維護，基於 v0.41.1。
+> 額外加入了影片下載、二級選單、毛玻璃模糊強度調節、收藏夾管理，以及歷史頁整頁補全（篩選/宮格/批次管理）等功能，
+> 並修復了一批介面問題。本 fork 沒有在任何瀏覽器擴充功能商店上架，請執行
+> `npm run build` 後載入生成的 `extension/` 目錄使用。
+> 問題請提到本倉庫的 Issues。
+
 <p align="center" style="margin-bottom: 0px !important;">
-<img width="300" alt="BewlyBewly icon" src="https://cdn.jsdelivr.net/gh/BewlyBewly/Imgs/logos/bewlybewly-vtuber-logo.png"><br/>
+<img width="300" alt="BewlyBewly icon" src="assets/bewly-vtuber-style-logo.png"><br/>
 </p>
 
 <p align="center">只需對您的 Bilibili 主頁進行一些小改動就好。</p>
-
-<!-- ![min1](https://github.com/hakadao/BewlyBewly/assets/33394391/951f9e2a-d0e1-452c-83a9-dc6d85c4d441)
-![min2](https://github.com/hakadao/BewlyBewly/assets/33394391/3e75dd20-f60b-4645-b434-23a24c72959c) -->
 
 ## 👋 介紹
 
@@ -17,10 +22,6 @@
 > BewlyBewly 主要著重於頁面調整和改良，而不是完善功能和提升效率。
 >
 > 由於考慮到效率和維護困難度，深色模式只會適應常用的頁面，而較少使用的頁面則不會支護。
-
-> [!CAUTION]
-> [BLBewly](https://apps.apple.com/us/app/blbewly/id6742200021) 是 Safari 上的免費 BewlyBewly 擴充程式。我們感謝 [𝗦𝘁𝗲𝘃𝗲 𝕏](https://x.com/st7evechou) 協助我們免費將應用程式發佈到 Safari。
-> 但是，Safari 版本遇到的問題不在我們的維護範圍內，我們不考慮 Safari 維護。
 
 > [!CAUTION]
 > 如果您正在安裝此擴充功能，您的瀏覽器可能會提示它可以讀取您的瀏覽歷史記錄。
@@ -36,56 +37,20 @@ BewlyBewly 是一個針對 BiliBili 的瀏覽器擴充功能，旨在透過重�
 
 ## ⬇️ 安裝
 
-### 線上安裝
+本 fork 沒有在任何瀏覽器擴充功能商店上架。請從原始碼建置：
 
-> [!TIP]
-> 即使您使用的是 Edge 瀏覽器，我們仍然強烈建議您從 Chrome 線上應用程式商店安裝。在審核速度上，Chrome 線上應用程式商店比 Edge 的附加元件快很多。
->
-> 此外，BewlyBewly 的 Chrome Web Store 版本將更快地解決和修復關鍵性的錯誤。
+```bash
+pnpm install   # 或 npm install
+npm run build  # Chrome / Edge 建置，產物在 extension/
+```
 
-- Chrome: <https://chromewebstore.google.com/detail/bewlybewly/bbbiejemhfihiooipfcjmjmbfdmobobp>
-- Edge: <https://chromewebstore.google.com/detail/bewlybewly/bbbiejemhfihiooipfcjmjmbfdmobobp>
-- Firefox: <https://addons.mozilla.org/zh-TW/firefox/addon/bewlybewly/>
+接著以「載入解壓縮的擴充功能」方式載入：
 
-#### 給 Firefox 使用者的提示
+1. 開啟 `chrome://extensions`（Chrome）或 `edge://extensions`（Edge）
+2. 開啟「開發人員模式」，點擊「載入解壓縮」
+3. 選擇產生的 `extension/` 目錄
 
-> [!WARNING]
-> 使用 Firefox 瀏覽器時，請記得啓用下圖所示的所有權限，以便正常使用 BewlyBewly
-
-<br/> <img width="655" alt="enable all bewlybewly permissions on firefox" src="https://github.com/hakadao/BewlyBewly/assets/33394391/9566aed8-040a-4435-a2ec-c61117f8e429">
-
-### 離線安裝
-
-[CI](https://github.com/hakadao/BewlyBewly/actions)：自動建置最新的程式碼
-
-[Releases](https://github.com/hakadao/BewlyBewly/releases)：穩定版本
-
-#### Edge 和 Chrome (推薦)
-
-> 確保您已下載 [extension.zip](https://github.com/hakadao/BewlyBewly/releases)。
-
-在 Edge 中打開 `edge://extensions` 頁面或在 Chrome 中打開 `chrome://extensions` 頁面，只需將下載的 `extension.zip` 檔案拖放到瀏覽器中，即可完成安裝。
-
-<details>
- <summary> Edge 和 Chrome 的另一種安裝方法 </summary>
-
-#### Edge
-
-> 確保您已下載 [extension.zip](https://github.com/hakadao/BewlyBewly/releases) 並且解壓縮此檔案。
-
-1. 在地址欄中輸入 `edge://extensions/`，然後按下 Enter 鍵
-2. 打開`開發者模式`，然後按下`載入解壓縮` <br/> <img width="655" alt="image" src="https://user-images.githubusercontent.com/33394391/232246901-e3544c16-bde2-480d-b770-ca5242793963.png">
-3. 將已解壓縮的擴充功能的資料夾載入到您的瀏覽器
-
-#### Chrome
->
-> 確保您已下載 [extension.zip](https://github.com/hakadao/BewlyBewly/releases) 並且解壓縮此檔案。
-
-1. 在地址欄中輸入 `chrome://extensions/`，然後按下 Enter 鍵
-2. 打開`開發者模式`，然後按下`載入解壓縮` <br/> <img width="655" alt="Snipaste_2022-03-27_18-17-04" src="https://user-images.githubusercontent.com/33394391/160276882-13da0484-92c1-47dd-add8-7655c5c2bf1c.png">
-3. 將已解壓縮的擴充功能的資料夾載入到您的瀏覽器
-
-</details>
+Firefox 請執行 `npm run build-firefox`，然後在 `about:debugging` → `This Firefox` → `載入暫存附加元件` 中載入 `extension-firefox/`。
 
 ## 🤝 貢獻與建置專案
 
@@ -93,7 +58,7 @@ BewlyBewly 是一個針對 BiliBili 的瀏覽器擴充功能，旨在透過重�
 
 ### 貢獻者
 
-[![Contributors](https://contrib.rocks/image?repo=hakadao/BewlyBewly)](https://github.com/BewlyBewly/BewlyBewly/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=JJUAN233/BewlyBewly)](https://github.com/JJUAN233/BewlyBewly/graphs/contributors)
 
 ## ❤️ 鳴謝
 

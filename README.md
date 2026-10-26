@@ -2,14 +2,20 @@
 
 English | [官话 - 简体中文](README-cmn_CN.md) | [官話 - 繁體中文](README-cmn_TW.md) | [廣東話](README-jyut.md)
 
+> [!NOTE]
+> This is a personal fork of BewlyBewly, maintained by
+> [JJUAN233](https://github.com/JJUAN233) and based on v0.41.1.
+> It adds video download, sub-menus, glass-blur intensity control, and favorites management,
+> along with a full-featured history page (filters, grid layout, batch management) and a batch of UI fixes.
+> This fork is not published on any extension store: build it with `npm run build`
+> and load the generated `extension/` directory.
+> Please report issues to this repository's Issues page.
+
 <p align="center" style="margin-bottom: 0px !important;">
-<img width="300" alt="BewlyBewly icon" src="https://cdn.jsdelivr.net/gh/BewlyBewly/Imgs/logos/bewlybewly-vtuber-logo.png"><br/>
+<img width="300" alt="BewlyBewly icon" src="assets/bewly-vtuber-style-logo.png"><br/>
 </p>
 
 <p align="center">Just make a few small changes to your Bilibili homepage.</p>
-
-<!-- ![min1](https://github.com/hakadao/BewlyBewly/assets/33394391/951f9e2a-d0e1-452c-83a9-dc6d85c4d441)
-![min2](https://github.com/hakadao/BewlyBewly/assets/33394391/3e75dd20-f60b-4645-b434-23a24c72959c) -->
 
 ## 👋 Introduction
 
@@ -18,11 +24,6 @@ English | [官话 - 简体中文](README-cmn_CN.md) | [官話 - 繁體中文](RE
 >
 > The dark mode will only be adapted to commonly used pages due to its efficiency and maintenance difficulty, while less
 > frequently used pages will not to be adapted.
-
-> [!CAUTION]
-> [BLBewly](https://apps.apple.com/us/app/blbewly/id6742200021) is a free BewlyBewly extension on Safari. We thank [𝗦𝘁𝗲𝘃𝗲 𝕏](https://x.com/st7evechou) for their help with the free publication of the app to Safari.
-> However, issues encountered with the Safari version are outside of our maintenance scope,
-> and we are not considering Safari maintenance.
 
 > [!CAUTION]
 > If you are installing this extension, your browser will probably say that it can read your browser history.
@@ -39,58 +40,20 @@ Without this template, it may not be possible to develop this project.
 
 ## ⬇️ Installation
 
-### Online Installation
+This fork is not published on any browser extension store. Build it from source:
 
-> [!TIP]
-> Even in the Edge browser, we strongly recommend you install it in the Chrome web store.
-> In terms of review speed, the Chrome web store is faster than Edge Add-ons.
->
-> Additionally, the Chrome Web Store version of BewlyBewly will address and fix critical bugs more quickly.
+```bash
+pnpm install   # or npm install
+npm run build  # Chrome / Edge build, output in extension/
+```
 
-- Chrome: <https://chromewebstore.google.com/detail/bewlybewly/bbbiejemhfihiooipfcjmjmbfdmobobp>
-- Edge: <https://chromewebstore.google.com/detail/bewlybewly/bbbiejemhfihiooipfcjmjmbfdmobobp>
-- Firefox: <https://addons.mozilla.org/en-US/firefox/addon/bewlybewly/>
+Then load it as an unpacked extension:
 
-#### To Firefox users
+1. Open `chrome://extensions` (Chrome) or `edge://extensions` (Edge)
+2. Turn on `Developer mode` and click `Load unpacked`
+3. Select the generated `extension/` directory
 
-> [!WARNING]
-> When using the Firefox browser, remember to enable all permissions shown in the picture below for normal use of BewlyBewly
-
-<br/> <img width="655" alt="enable all bewlybewly permissions on firefox" src="https://github.com/hakadao/BewlyBewly/assets/33394391/9566aed8-040a-4435-a2ec-c61117f8e429">
-
-### Local Installation
-
-[CI](https://github.com/hakadao/BewlyBewly/actions): Automatically build with the latest code
-
-[Releases](https://github.com/hakadao/BewlyBewly/releases): Stable version
-
-#### Edge & Chrome (RECOMMENDED)
-
-> Ensure you installed [extension.zip](https://github.com/hakadao/BewlyBewly/releases) .
-
-Opening the `edge://extensions` page in the Edge or `chrome://extensions` page in Chrome,
-simply drag and drop the downloaded `extension.zip` file into the browser to complete the installation.
-
-<details>
- <summary> Another installation method for Edge & Chrome </summary>
-
-#### Edge
-
-> Ensure you installed [extension.zip](https://github.com/hakadao/BewlyBewly/releases) and decompress this file.
-
-1. Type in `edge://extensions/` in the address bar and press Enter
-2. Turn on `Developer mode` then press `Load Unpacked` <br/> <img width="655" alt="image" src="https://user-images.githubusercontent.com/33394391/232246901-e3544c16-bde2-480d-b770-ca5242793963.png">
-3. Load the decompressed extension folder in your browser
-
-#### Chrome
->
-> Ensure you installed [extension.zip](https://github.com/hakadao/BewlyBewly/releases) and decompress this file.
-
-1. Type in `chrome://extensions/` in the address bar and press Enter
-2. Turn on `Developer mode` then press `Load Unpacked` <br/> <img width="655" alt="Snipaste_2022-03-27_18-17-04" src="https://user-images.githubusercontent.com/33394391/160276882-13da0484-92c1-47dd-add8-7655c5c2bf1c.png">
-3. Load the decompressed extension folder in your browser
-
-</details>
+For Firefox, run `npm run build-firefox` and load `extension-firefox/` from `about:debugging` → `This Firefox` → `Load Temporary Add-on`.
 
 ## 🤝 Contribution & Build
 
@@ -98,7 +61,7 @@ See [CONTRIBUTING.md](docs/CONTRIBUTING.md)
 
 ### Contributors
 
-[![Contributors](https://contrib.rocks/image?repo=hakadao/BewlyBewly)](https://github.com/BewlyBewly/BewlyBewly/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=JJUAN233/BewlyBewly)](https://github.com/JJUAN233/BewlyBewly/graphs/contributors)
 
 ## ❤️ Credits
 

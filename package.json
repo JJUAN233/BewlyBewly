@@ -2,11 +2,15 @@
   "name": "bewly-bewly",
   "displayName": "BewlyBewly",
   "type": "module",
-  "version": "0.41.1",
+  "version": "0.41.1.1",
   "private": true,
   "packageManager": "pnpm@9.5.0",
   "description": "Just make a few small changes to your Bilibili homepage.",
-  "homepage": "https://github.com/hakadao/BewlyBewly",
+  "homepage": "https://github.com/JJUAN233/BewlyBewly",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JJUAN233/BewlyBewly.git"
+  },
   "scripts": {
     "dev": "npm run clear && cross-env NODE_ENV=development VSCODE_CWD= run-p dev:*",
     "dev-firefox": "npm run clear-firefox && cross-env NODE_ENV=development FIREFOX=true VSCODE_CWD= run-p dev:*",
@@ -82,7 +86,7 @@
     "knip": "^5.19.0",
     "kolorist": "^1.8.0",
     "lint-staged": "^15.2.7",
-    "npm-run-all": "^4.1.5",
+    "npm-run-all2": "7",
     "release-it": "^17.3.0",
     "release-it-pnpm": "^4.6.1",
     "rimraf": "^5.0.7",
